@@ -31,6 +31,7 @@ button:disabled { cursor: default; opacity: .55; }
 .iconbtn svg { width: 20px; height: 20px; }
 
 main { flex: 1; overflow-y: auto; padding-top: 4px; padding-bottom: 110px; display: flex; flex-direction: column; gap: 14px; }
+main > *, .solo > * { flex-shrink: 0; }
 
 .card { background: var(--surface); border-radius: 22px; padding: 18px; }
 .h2 { font-family: var(--f-display); font-weight: 700; font-size: 17px; margin: 0; letter-spacing: -.005em; }

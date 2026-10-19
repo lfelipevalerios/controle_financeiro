@@ -6,10 +6,15 @@ import { supabase } from '../../data/supabase';
 
 const EMAIL_OK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function traduzirErro(msg: string): string {
-  if (/invalid login credentials/i.test(msg)) return 'E-mail ou senha incorretos.';
-  if (/already registered|already exists/i.test(msg)) return 'Este e-mail já tem conta. Use "Entrar".';
-  if (/password/i.test(msg) && /6|short|weak/i.test(msg)) return 'A senha precisa ter pelo menos 6 caracteres.';
+function traduzirErro(msg: string, code?: string): string {
+  if (code === 'invalid_credentials' || /invalid login credentials/i.test(msg)) return 'E-mail ou senha incorretos.';
+  if (code === 'user_already_exists' || /already registered|already exists/i.test(msg))
+    return 'Este e-mail já tem conta. Use "Entrar" com a senha que você criou.';
+  if (code === 'email_address_invalid' || /email address .* is invalid/i.test(msg))
+    return 'O Supabase recusou este e-mail. Confira se está digitado certo.';
+  if (code === 'weak_password' || (/password/i.test(msg) && /6|short|weak|character/i.test(msg)))
+    return `Senha fraca: ${msg}`;
+  if (code === 'signup_disabled') return 'O cadastro de novas contas está desligado no Supabase.';
   if (/rate limit/i.test(msg)) return 'Muitas tentativas. Espere um minuto e tente de novo.';
   if (/email not confirmed/i.test(msg)) return 'Confirme o e-mail pelo link que enviamos antes de entrar.';
   if (/fetch|network/i.test(msg)) return 'Sem conexão. Verifique a internet e tente de novo.';
@@ -48,10 +53,10 @@ export function EntrarScreen() {
     try {
       if (modo === 'entrar') {
         const { error } = await supabase.auth.signInWithPassword({ email: em, password: senha });
-        if (error) setErro(traduzirErro(error.message));
+        if (error) setErro(traduzirErro(error.message, error.code));
       } else {
         const { data, error } = await supabase.auth.signUp({ email: em, password: senha });
-        if (error) setErro(traduzirErro(error.message));
+        if (error) setErro(traduzirErro(error.message, error.code));
         else if (!data.session) setAviso(`Conta criada. Enviamos um e-mail para ${em}: confirme e depois entre aqui.`);
       }
     } catch (err) {
