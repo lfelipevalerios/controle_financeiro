@@ -1,0 +1,35 @@
+:root {
+  /* cores — tema claro */
+  --backdrop: #D7E0DC;
+  --bg: #EEF2F0;
+  --surface: #FFFFFF;
+  --surface-2: #E4EBE8;
+  --ink: #13221E;
+  --muted: #5A6A65;
+  --line: #D2DCD8;
+  --track: #E0E7E4;
+  --accent: #155E75;
+  --accent-soft: #CFE5EC;
+  --accent-ink: #FFFFFF;
+  --good: #2A8452;
+  --bad: #C03A29;
+  --warn: #A86E12;
+  --scrim: rgba(10, 22, 19, .42);
+
+  /* tipografia */
+  --f-display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --f-body: "Manrope", "Segoe UI", system-ui, sans-serif;
+
+  /* forma */
+  --r-card: 22px; --r-sheet: 26px; --r-field: 14px; --r-pill: 999px;
+  --gutter: 16px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --backdrop: #070C0B; --bg: #0F1715; --surface: #17221F; --surface-2: #1F2C29;
+    --ink: #E5EEEA; --muted: #93A49F; --line: #2A3935; --track: #24332F;
+    --accent: #66BBD2; --accent-soft: #163844; --accent-ink: #062530;
+    --good: #5EC48C; --bad: #F07B69; --warn: #E2AE57; --scrim: rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
+}

@@ -1,0 +1,901 @@
+<title>Baldinhos da Família</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: uma coluna de app Android (até 440px), barra superior com o mês, conteúdo rolável, navegação inferior e FAB; folhas inferiores para formulários */
+:root {
+  --backdrop: #D7E0DC;
+  --bg: #EEF2F0;
+  --surface: #FFFFFF;
+  --surface-2: #E4EBE8;
+  --ink: #13221E;
+  --muted: #5A6A65;
+  --line: #D2DCD8;
+  --track: #E0E7E4;
+  --accent: #155E75;
+  --accent-soft: #CFE5EC;
+  --accent-ink: #FFFFFF;
+  --good: #2A8452;
+  --bad: #C03A29;
+  --warn: #A86E12;
+  --scrim: rgba(10, 22, 19, .42);
+  --f-display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --f-body: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --backdrop: #070C0B; --bg: #0F1715; --surface: #17221F; --surface-2: #1F2C29;
+    --ink: #E5EEEA; --muted: #93A49F; --line: #2A3935; --track: #24332F;
+    --accent: #66BBD2; --accent-soft: #163844; --accent-ink: #062530;
+    --good: #5EC48C; --bad: #F07B69; --warn: #E2AE57; --scrim: rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --backdrop: #070C0B; --bg: #0F1715; --surface: #17221F; --surface-2: #1F2C29;
+  --ink: #E5EEEA; --muted: #93A49F; --line: #2A3935; --track: #24332F;
+  --accent: #66BBD2; --accent-soft: #163844; --accent-ink: #062530;
+  --good: #5EC48C; --bad: #F07B69; --warn: #E2AE57; --scrim: rgba(0,0,0,.6);
+  color-scheme: dark;
+}
+
+html, body { height: 100%; }
+body { background: var(--backdrop); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.45; }
+* { box-sizing: border-box; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.num { font-variant-numeric: tabular-nums; }
+
+.app { position: relative; display: flex; flex-direction: column; height: 100%; max-width: 440px; margin: 0 auto; background: var(--bg); overflow: hidden; }
+@media (min-width: 600px) {
+  .app { height: calc(100% - 40px); margin: 20px auto; border-radius: 30px; border: 1px solid var(--line); box-shadow: 0 30px 70px -40px rgba(0,0,0,.45); }
+}
+.gut { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* Barra superior */
+.bar { padding-block: 14px 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--bg); }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand h1 { font-family: var(--f-display); font-size: 21px; font-weight: 700; margin: 0; letter-spacing: -.01em; line-height: 1.1; }
+.brand small { display: block; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.live { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--good); margin-right: 5px; vertical-align: 1px; }
+.live.off { background: var(--warn); }
+.month { display: flex; align-items: center; gap: 2px; background: var(--surface); border-radius: 999px; padding: 3px; border: 1px solid var(--line); flex-shrink: 0; }
+.month button { width: 32px; height: 32px; border: 0; background: transparent; border-radius: 50%; font-size: 18px; line-height: 1; }
+.month button:hover { background: var(--surface-2); }
+.month span { font-weight: 700; font-size: 13px; min-width: 74px; text-align: center; }
+
+main { flex: 1; overflow-y: auto; padding-block: 4px 104px; display: flex; flex-direction: column; gap: 14px; }
+
+.card { background: var(--surface); border-radius: 22px; padding: 18px; }
+.h2 { font-family: var(--f-display); font-weight: 700; font-size: 17px; margin: 0; letter-spacing: -.005em; }
+.sub { color: var(--muted); font-size: 13px; margin: 2px 0 0; }
+.rowhead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 2px 4px 0; }
+
+/* Resumo do mês */
+.big { font-family: var(--f-display); font-weight: 700; font-size: 38px; letter-spacing: -.02em; line-height: 1.05; }
+.big-of { color: var(--muted); font-size: 14px; margin-top: 2px; }
+.bar-track { position: relative; height: 12px; border-radius: 999px; background: var(--track); overflow: visible; margin-top: 14px; }
+.bar-fill { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: var(--accent); }
+.bar-fill.over { background: var(--bad); }
+.bar-mark { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink); border-radius: 2px; opacity: .75; }
+.bar-track.thin { height: 7px; margin-top: 9px; }
+.bar-track.thin .bar-mark { top: -3px; bottom: -3px; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-top: 16px; }
+.stat { min-width: 0; }
+.stat dt { color: var(--muted); font-size: 11.5px; font-weight: 600; letter-spacing: .02em; }
+.stat dd { margin: 2px 0 0; font-weight: 700; font-size: 15px; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 12px; margin-top: 12px; }
+.legend i { display: inline-block; vertical-align: -1px; margin-right: 5px; }
+.lg-mark { width: 2px; height: 11px; background: var(--ink); opacity: .75; }
+
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.chip.good { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
+.chip.bad { color: var(--bad); background: color-mix(in srgb, var(--bad) 14%, transparent); }
+.chip.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 16%, transparent); }
+.chip.neutral { color: var(--muted); background: var(--surface-2); }
+
+/* Gráfico */
+.chart { margin-top: 10px; }
+.chart svg { display: block; width: 100%; height: auto; }
+
+/* Lista de baldinhos */
+.list { background: var(--surface); border-radius: 22px; overflow: hidden; }
+.item { display: grid; grid-template-columns: 38px minmax(0,1fr); gap: 12px; padding: 14px 16px; width: 100%; text-align: left; border: 0; background: transparent; border-top: 1px solid var(--line); }
+.item:first-child { border-top: 0; }
+button.item:hover { background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
+.item-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.item-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-val { font-weight: 700; white-space: nowrap; }
+.item-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 2px; color: var(--muted); font-size: 12.5px; flex-wrap: wrap; }
+.period { margin-top: 8px; font-size: 12.5px; color: var(--muted); }
+.period b { color: var(--ink); }
+
+.banner { background: var(--accent-soft); border-radius: 18px; padding: 12px 14px; font-size: 13px; display: flex; flex-direction: column; gap: 8px; }
+.banner .acts { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.btn { border: 0; border-radius: 999px; padding: 10px 18px; font-weight: 700; font-size: 14px; background: var(--surface-2); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); }
+.btn.danger { background: transparent; color: var(--bad); border: 1px solid color-mix(in srgb, var(--bad) 45%, transparent); }
+.btn.danger.armed { background: var(--bad); color: var(--surface); border-color: var(--bad); }
+.btn.small { padding: 6px 12px; font-size: 12.5px; }
+.btn.ghost { background: transparent; border: 1px solid var(--line); }
+
+.empty { text-align: center; padding: 34px 20px; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.empty .h2 { color: var(--ink); }
+
+/* Lançamentos */
+.filters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.fchip { flex-shrink: 0; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 600; display: inline-flex; gap: 6px; align-items: center; }
+.fchip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+.dayhead { display: flex; justify-content: space-between; color: var(--muted); font-size: 12.5px; font-weight: 700; padding: 6px 6px 6px; text-transform: capitalize; }
+.exp { display: grid; grid-template-columns: 12px minmax(0,1fr) auto; gap: 12px; align-items: center; padding: 12px 16px; width: 100%; text-align: left; background: transparent; border: 0; border-top: 1px solid var(--line); }
+.exp:first-child { border-top: 0; }
+button.exp:hover { background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
+.exp-t { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.exp-m { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.exp-v { font-weight: 700; }
+
+/* Navegação e FAB */
+.nav { display: flex; background: var(--surface); border-top: 1px solid var(--line); padding-block: 6px 8px; }
+.nav button { flex: 1; border: 0; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; color: var(--muted); padding: 4px 0; }
+.nav .pill { width: 56px; height: 30px; border-radius: 999px; display: grid; place-items: center; }
+.nav button[aria-current="page"] { color: var(--ink); }
+.nav button[aria-current="page"] .pill { background: var(--accent-soft); color: var(--accent); }
+.nav svg { width: 22px; height: 22px; }
+.fab { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); bottom: 84px; border: 0; border-radius: 18px; background: var(--accent); color: var(--accent-ink); font-weight: 700; padding: 15px 20px; display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 24px -10px rgba(0,0,0,.5); z-index: 3; }
+.fab svg { width: 20px; height: 20px; }
+
+/* Folha inferior */
+.scrim { position: absolute; inset: 0; background: var(--scrim); z-index: 5; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 90%; overflow-y: auto; background: var(--surface); border-radius: 26px 26px 0 0; z-index: 6; padding-block: 8px 22px; animation: up .22s ease-out; }
+@keyframes up { from { transform: translateY(30px); opacity: .4; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .sheet { animation: none; } }
+.grab { width: 36px; height: 4px; border-radius: 4px; background: var(--line); margin: 4px auto 12px; }
+.sheet-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; }
+.x { width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--surface-2); font-size: 18px; line-height: 1; flex-shrink: 0; }
+.form { display: flex; flex-direction: column; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field > label, .lbl { font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.inp { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 14px; padding: 12px 14px; font-size: 16px; }
+.inp:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+.amount { display: flex; align-items: baseline; gap: 6px; border-bottom: 2px solid var(--line); padding-bottom: 4px; }
+.amount:focus-within { border-color: var(--accent); }
+.amount span { font-family: var(--f-display); font-size: 22px; color: var(--muted); font-weight: 600; }
+.amount input { border: 0; background: transparent; font-family: var(--f-display); font-size: 40px; font-weight: 700; width: 100%; min-width: 0; padding: 0; outline: none; font-variant-numeric: tabular-nums; }
+.pick { display: flex; flex-wrap: wrap; gap: 8px; }
+.pick label { position: relative; }
+.pick input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.pick span { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; font-size: 13.5px; font-weight: 600; background: var(--bg); }
+.pick input:checked + span { border-color: var(--ink); background: var(--ink); color: var(--bg); }
+.pick input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--surface-2); border-radius: 14px; padding: 3px; }
+.seg label { position: relative; }
+.seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.seg span { display: block; text-align: center; padding: 9px 4px; border-radius: 11px; font-size: 13.5px; font-weight: 700; color: var(--muted); }
+.seg input:checked + span { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+.seg input:focus-visible + span { outline: 2px solid var(--accent); }
+.swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+.swatches label { position: relative; }
+.swatches input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.swatches span { display: block; width: 32px; height: 32px; border-radius: 50%; border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--line); }
+.swatches input:checked + span { box-shadow: 0 0 0 2px var(--ink); }
+.swatches input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 3px; }
+.preview { background: var(--bg); border-radius: 14px; padding: 12px 14px; font-size: 13.5px; }
+.preview b { font-size: 16px; }
+.err { color: var(--bad); font-size: 13px; font-weight: 600; min-height: 1em; }
+.acts-row { display: flex; gap: 10px; justify-content: space-between; flex-wrap: wrap; }
+.acts-row .grow { display: flex; gap: 10px; margin-left: auto; }
+.kv { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+.kv div { background: var(--bg); border-radius: 14px; padding: 10px 12px; min-width: 0; }
+.kv dt { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+.kv dd { margin: 2px 0 0; font-weight: 700; }
+.note { color: var(--muted); font-size: 12.5px; padding: 0 6px; }
+
+.toast { position: absolute; left: 50%; bottom: 150px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-size: 13.5px; font-weight: 600; z-index: 9; max-width: calc(100% - 32px); text-align: center; }
+</style>
+
+<div class="app" id="app">
+  <header class="bar gut">
+    <div class="brand">
+      <svg width="34" height="34" viewBox="0 0 32 32" aria-hidden="true">
+        <defs><clipPath id="logoClip"><path d="M5 9 L27 9 L24.2 27.4 Q24 28.5 22.9 28.5 L9.1 28.5 Q8 28.5 7.8 27.4 Z"/></clipPath></defs>
+        <path d="M8.5 9 Q16 1 23.5 9" fill="none" stroke="var(--muted)" stroke-width="1.7" stroke-linecap="round"/>
+        <rect clip-path="url(#logoClip)" x="0" y="17" width="32" height="12" fill="var(--accent)"/>
+        <path d="M5 9 L27 9 L24.2 27.4 Q24 28.5 22.9 28.5 L9.1 28.5 Q8 28.5 7.8 27.4 Z" fill="none" stroke="var(--accent)" stroke-width="1.9" stroke-linejoin="round"/>
+      </svg>
+      <div style="min-width:0"><h1>Baldinhos</h1><small id="sync"><span class="live off"></span>Abrindo a conta da família…</small></div>
+    </div>
+    <div class="month">
+      <button type="button" data-act="prevM" aria-label="Mês anterior">‹</button>
+      <span id="mLabel" class="num">—</span>
+      <button type="button" data-act="nextM" aria-label="Próximo mês">›</button>
+    </div>
+  </header>
+
+  <main id="main" class="gut">
+    <div class="card"><p class="h2">Carregando os baldinhos…</p><p class="sub">Os orçamentos e gastos da família aparecem aqui em instantes.</p></div>
+  </main>
+
+  <button type="button" class="fab" id="fab" data-act="newExp">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>
+    Lançar gasto
+  </button>
+
+  <nav class="nav gut" aria-label="Navegação">
+    <button type="button" data-act="tab" data-tab="mes" aria-current="page">
+      <span class="pill"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>Mês
+    </button>
+    <button type="button" data-act="tab" data-tab="lanc">
+      <span class="pill"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg></span>Lançamentos
+    </button>
+    <button type="button" data-act="tab" data-tab="baldes">
+      <span class="pill"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M3.5 7h17l-2 13a1.5 1.5 0 0 1-1.5 1.3H7a1.5 1.5 0 0 1-1.5-1.3z"/><path d="M7 7a5 5 0 0 1 10 0"/></svg></span>Baldinhos
+    </button>
+  </nav>
+
+  <div class="scrim" id="scrim" data-act="closeSheet" hidden></div>
+  <section class="sheet gut" id="sheet" role="dialog" aria-modal="true" hidden></section>
+  <div class="toast" id="toast" role="status" hidden></div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- Utilidades ----------
+  const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  const MES_CURTO = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+  const DIAS_SEM = ["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
+  const CORES = ["#1F7A8C","#2F8F5B","#6E56C2","#C8412F","#C08410","#2E6FD8","#B0437A","#6A7F2C"];
+  const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+  const brl0 = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+  const money = v => brl.format(Math.round((v || 0) * 100) / 100);
+  const money0 = v => brl0.format(v || 0);
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const pad = n => String(n).padStart(2, "0");
+  const now = new Date();
+  const T = { y: now.getFullYear(), m: now.getMonth(), d: now.getDate() };
+  const ymKey = (y, m) => y + "-" + pad(m + 1);
+  const dateKey = (y, m, d) => ymKey(y, m) + "-" + pad(d);
+  const todayKey = dateKey(T.y, T.m, T.d);
+  const dim = (y, m) => new Date(y, m + 1, 0).getDate();
+  const dow = (y, m, d) => new Date(y, m, d).getDay();
+  const matches = (dias, w) => dias === "uteis" ? (w >= 1 && w <= 5) : dias === "fds" ? (w === 0 || w === 6) : true;
+  const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const parseValor = s => {
+    s = String(s || "").trim().replace(/[R$\s]/g, "");
+    if (s.includes(",")) s = s.replace(/\./g, "").replace(",", ".");
+    const v = parseFloat(s);
+    return isFinite(v) ? Math.round(v * 100) / 100 : NaN;
+  };
+  const fmtInput = v => (v || v === 0) ? String(v).replace(".", ",") : "";
+
+  function countDays(dias, y, m, upto) {
+    let c = 0;
+    for (let d = 1; d <= upto; d++) if (matches(dias, dow(y, m, d))) c++;
+    return c;
+  }
+  // Valor planejado do baldinho no mês, até o dia "upto" (inclusive)
+  function planned(b, y, m, upto) {
+    const D = dim(y, m);
+    if (upto === undefined) upto = D;
+    const v = Number(b.valor) || 0;
+    if (b.periodo === "mes") return v * upto / D;
+    if (b.periodo === "semana") return v * upto / 7;
+    return v * countDays(b.dias || "todos", y, m, upto);
+  }
+  function uptoDay(y, m) {
+    if (y === T.y && m === T.m) return T.d;
+    if (y < T.y || (y === T.y && m < T.m)) return dim(y, m);
+    return 0;
+  }
+  const diasNome = d => d === "uteis" ? "dia útil" : d === "fds" ? "dia de fim de semana" : "dia";
+  function ruleLabel(b) {
+    if (b.periodo === "mes") return money0(b.valor) + " por mês";
+    if (b.periodo === "semana") return money0(b.valor) + " por semana";
+    return money0(b.valor) + " por " + diasNome(b.dias);
+  }
+  function ruleExplain(b, y, m) {
+    const D = dim(y, m);
+    if (b.periodo === "mes") return "Valor fixo do mês";
+    if (b.periodo === "semana") return (D / 7).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " semanas em " + MESES[m].toLowerCase();
+    const n = countDays(b.dias, y, m, D);
+    const nome = b.dias === "uteis" ? "dias úteis" : b.dias === "fds" ? "dias de fim de semana" : "dias";
+    return n + " " + nome + " em " + MESES[m].toLowerCase();
+  }
+  function weekRange() {
+    const w = (dow(T.y, T.m, T.d) + 6) % 7; // segunda = 0
+    const s = new Date(T.y, T.m, T.d - w), e = new Date(T.y, T.m, T.d - w + 6);
+    return [dateKey(s.getFullYear(), s.getMonth(), s.getDate()), dateKey(e.getFullYear(), e.getMonth(), e.getDate())];
+  }
+  function prevMonth(y, m) { return m === 0 ? [y - 1, 11] : [y, m - 1]; }
+  function nextMonth(y, m) { return m === 11 ? [y + 1, 0] : [y, m + 1]; }
+
+  // ---------- Dados de exemplo (modo demonstração) ----------
+  function sampleData(y, m) {
+    const buckets = [
+      { id: "ex-mercado", nome: "Mercado", cor: CORES[0], periodo: "mes", dias: "todos", valor: 1800, ordem: 1 },
+      { id: "ex-almoco", nome: "Almoço no trabalho", cor: CORES[4], periodo: "dia", dias: "uteis", valor: 45, ordem: 2 },
+      { id: "ex-lazer", nome: "Lazer de fim de semana", cor: CORES[2], periodo: "dia", dias: "fds", valor: 80, ordem: 3 },
+      { id: "ex-transporte", nome: "Combustível e transporte", cor: CORES[5], periodo: "semana", dias: "todos", valor: 200, ordem: 4 },
+      { id: "ex-farmacia", nome: "Farmácia", cor: CORES[1], periodo: "mes", dias: "todos", valor: 300, ordem: 5 },
+      { id: "ex-casa", nome: "Casa e manutenção", cor: CORES[6], periodo: "mes", dias: "todos", valor: 400, ordem: 6 }
+    ].map(b => Object.assign(b, { exemplo: true }));
+    const raw = [
+      ["ex-mercado", 2, 412.30, "Compra do mês no atacarejo"], ["ex-mercado", 9, 386.90, "Feira e hortifruti"], ["ex-mercado", 16, 521.40, "Mercado da semana"],
+      ["ex-almoco", 1, 38.5, "Almoço"], ["ex-almoco", 2, 52, "Almoço com cliente"], ["ex-almoco", 5, 41, "Almoço"], ["ex-almoco", 6, 47.9, "Almoço"],
+      ["ex-almoco", 7, 39, "Almoço"], ["ex-almoco", 8, 44, "Almoço"], ["ex-almoco", 9, 61.5, "Almoço de aniversário do time"], ["ex-almoco", 13, 42, "Almoço"],
+      ["ex-almoco", 14, 36, "Almoço"], ["ex-almoco", 15, 49, "Almoço"], ["ex-almoco", 16, 58, "Almoço"], ["ex-almoco", 19, 32, "Almoço"],
+      ["ex-lazer", 4, 95, "Cinema em família"], ["ex-lazer", 11, 140, "Passeio no parque e lanche"], ["ex-lazer", 18, 110, "Pizza de domingo"],
+      ["ex-transporte", 3, 180, "Gasolina"], ["ex-transporte", 10, 165, "Gasolina"], ["ex-transporte", 17, 210, "Gasolina e estacionamento"],
+      ["ex-farmacia", 6, 89.9, "Farmácia"], ["ex-farmacia", 14, 46.5, "Vitaminas"],
+      ["ex-casa", 12, 260, "Conserto do chuveiro"]
+    ];
+    const limit = (y === T.y && m === T.m) ? T.d : dim(y, m);
+    const expenses = raw.filter(r => r[1] <= limit).map((r, i) => ({
+      id: "ex-g" + pad(i + 1), bucketId: r[0], dia: r[1], valor: r[2], descricao: r[3],
+      data: dateKey(y, m, r[1]), month: ymKey(y, m), por: null, criadoEm: i + 1, exemplo: true
+    }));
+    expenses.forEach(e => delete e.dia);
+    return { buckets, expenses };
+  }
+
+  // ---------- Estado ----------
+  const S = {
+    y: T.y, m: T.m, tab: "mes", filtro: null,
+    mode: "loading", // loading | live | demo
+    db: null, user: null, me: null, canWrite: true,
+    buckets: [], expenses: [], bLoaded: false, eLoaded: false,
+    names: {}, sheet: null, confirmEx: false
+  };
+  const $ = id => document.getElementById(id);
+
+  // ---------- Camada de dados ----------
+  let unsubE = null;
+  function subscribeExpenses() {
+    if (!S.db) return;
+    if (unsubE) unsubE();
+    S.eLoaded = false;
+    const [py, pm] = prevMonth(S.y, S.m);
+    const keys = [ymKey(py, pm), ymKey(S.y, S.m)];
+    unsubE = S.db.collection("expenses").where("month", "in", keys).onSnapshot(snap => {
+      S.expenses = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+      S.eLoaded = true;
+      resolveNames();
+      render();
+    }, err => { toast("Não foi possível carregar os gastos. Recarregue a página."); console.warn(err); });
+  }
+  function subscribeBuckets() {
+    S.db.collection("buckets").onSnapshot(snap => {
+      S.buckets = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+      S.bLoaded = true;
+      render();
+    }, err => { toast("Não foi possível carregar os baldinhos. Recarregue a página."); console.warn(err); });
+  }
+  async function resolveNames() {
+    if (!S.user || !S.user.profiles) return;
+    const ids = [...new Set(S.expenses.map(e => e.por).filter(Boolean))].filter(id => !(id in S.names));
+    if (!ids.length) return;
+    try {
+      const ps = await S.user.profiles(ids);
+      ids.forEach(id => { const n = ps && ps[id] && ps[id].name; S.names[id] = n ? n.split(" ")[0] : ""; });
+      render();
+    } catch (e) { /* nomes são opcionais */ }
+  }
+  function whoLabel(e) {
+    if (e.exemplo) return "exemplo";
+    if (S.mode === "demo") return "você";
+    if (!e.por) return "";
+    if (e.por === S.me) return "você";
+    return S.names[e.por] || "família";
+  }
+  function handleWriteError(err) {
+    const c = err && err.code;
+    if (c === "invalid_argument") {
+      S.canWrite = false; render();
+      toast("Seu acesso permite só ver os dados. Peça para ser adicionado como Editor.");
+    } else if (c === "quota_exceeded") {
+      toast("O espaço de dados do app está cheio. Apague lançamentos antigos para continuar.");
+    } else {
+      toast("Não foi possível salvar. Verifique a conexão e tente de novo.");
+    }
+    console.warn(err);
+  }
+  async function saveDoc(col, doc) {
+    const body = Object.assign({}, doc); delete body.id;
+    if (S.mode !== "live") {
+      const arr = col === "buckets" ? S.buckets : S.expenses;
+      const i = arr.findIndex(x => x.id === doc.id);
+      if (i >= 0) arr[i] = doc; else arr.push(doc);
+      render(); return true;
+    }
+    try { await S.db.collection(col).doc(doc.id).set(body); return true; }
+    catch (err) { handleWriteError(err); return false; }
+  }
+  async function deleteDoc(col, id) {
+    if (S.mode !== "live") {
+      if (col === "buckets") S.buckets = S.buckets.filter(x => x.id !== id);
+      else S.expenses = S.expenses.filter(x => x.id !== id);
+      render(); return true;
+    }
+    try { await S.db.collection(col).doc(id).delete(); return true; }
+    catch (err) { handleWriteError(err); return false; }
+  }
+  async function clearExamples() {
+    if (S.mode !== "live") {
+      S.buckets = S.buckets.filter(b => !b.exemplo); S.expenses = S.expenses.filter(e => !e.exemplo);
+      S.confirmEx = false; render(); toast("Exemplos apagados"); return;
+    }
+    try {
+      const [eb, ee] = await Promise.all([
+        S.db.collection("buckets").where("exemplo", "==", true).get(),
+        S.db.collection("expenses").where("exemplo", "==", true).get()
+      ]);
+      for (const d of ee.docs) await S.db.collection("expenses").doc(d.id).delete();
+      for (const d of eb.docs) await S.db.collection("buckets").doc(d.id).delete();
+      S.confirmEx = false; render(); toast("Exemplos apagados. Agora é com vocês!");
+    } catch (err) { handleWriteError(err); }
+  }
+
+  // ---------- Cálculos do mês ----------
+  function monthStats() {
+    const { y, m } = S; const key = ymKey(y, m); const D = dim(y, m); const up = uptoDay(y, m);
+    const isCur = y === T.y && m === T.m;
+    const exps = S.expenses.filter(e => e.month === key);
+    const buckets = S.buckets.slice().sort((a, b) => (a.ordem || 0) - (b.ordem || 0) || String(a.nome).localeCompare(b.nome));
+    const ids = new Set(buckets.map(b => b.id));
+    const [ws, we] = weekRange();
+    const rows = buckets.map(b => {
+      const bx = exps.filter(e => e.bucketId === b.id);
+      const real = bx.reduce((s, e) => s + (Number(e.valor) || 0), 0);
+      const plan = planned(b, y, m);
+      const planTo = planned(b, y, m, up);
+      let periodo = null;
+      if (isCur) {
+        const all = S.expenses.filter(e => e.bucketId === b.id);
+        if (b.periodo === "dia") {
+          const hoje = all.filter(e => e.data === todayKey).reduce((s, e) => s + (Number(e.valor) || 0), 0);
+          const vale = matches(b.dias, dow(T.y, T.m, T.d));
+          periodo = { tipo: "dia", gasto: hoje, limite: vale ? Number(b.valor) : 0, vale };
+        } else if (b.periodo === "semana") {
+          const sem = all.filter(e => e.data >= ws && e.data <= we).reduce((s, e) => s + (Number(e.valor) || 0), 0);
+          periodo = { tipo: "semana", gasto: sem, limite: Number(b.valor) };
+        } else {
+          periodo = { tipo: "mes", gasto: real, limite: plan };
+        }
+      }
+      return { b, real, plan, planTo, exps: bx, periodo };
+    });
+    const orphan = exps.filter(e => !ids.has(e.bucketId));
+    if (orphan.length) {
+      const real = orphan.reduce((s, e) => s + (Number(e.valor) || 0), 0);
+      rows.push({ b: { id: "__sem", nome: "Sem baldinho", cor: "var(--muted)", periodo: "mes", valor: 0, semBalde: true }, real, plan: 0, planTo: 0, exps: orphan, periodo: null });
+    }
+    const tot = rows.reduce((t, r) => ({ real: t.real + r.real, plan: t.plan + r.plan, planTo: t.planTo + r.planTo }), { real: 0, plan: 0, planTo: 0 });
+    return { y, m, D, up, isCur, isPast: up === D && !isCur, isFuture: up === 0, rows, tot, exps };
+  }
+  // Situação de um baldinho (ou do total) frente ao ritmo e ao orçamento
+  function status(real, plan, planTo, st) {
+    if (st.isFuture) return { cls: "neutral", txt: "Planejado" };
+    if (plan > 0 && real > plan) return { cls: "bad", txt: "Estourou " + money0(real - plan) };
+    if (plan === 0 && real > 0) return { cls: "bad", txt: "Fora do plano" };
+    if (st.isPast) return { cls: "good", txt: "Sobrou " + money0(plan - real) };
+    const diff = planTo - real;
+    if (Math.abs(diff) < Math.max(1, plan * 0.01)) return { cls: "neutral", txt: "No ritmo" };
+    return diff > 0 ? { cls: "good", txt: money0(diff) + " abaixo do ritmo" } : { cls: "warn", txt: money0(-diff) + " acima do ritmo" };
+  }
+
+  // ---------- Peças visuais ----------
+  let svgSeq = 0;
+  function bucketSvg(color, frac, over, size) {
+    const id = "bk" + (++svgSeq); size = size || 34;
+    const f = Math.max(0, Math.min(1, frac || 0)); const h = 19.5 * f;
+    const body = "M5 9 L27 9 L24.2 27.4 Q24 28.5 22.9 28.5 L9.1 28.5 Q8 28.5 7.8 27.4 Z";
+    const fill = over ? "var(--bad)" : color;
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 32 32" aria-hidden="true">' +
+      '<defs><clipPath id="' + id + '"><path d="' + body + '"/></clipPath></defs>' +
+      '<path d="M8.5 9 Q16 1 23.5 9" fill="none" stroke="var(--muted)" stroke-width="1.6" stroke-linecap="round"/>' +
+      '<rect clip-path="url(#' + id + ')" x="0" y="' + (28.5 - h).toFixed(2) + '" width="32" height="' + (h + 1).toFixed(2) + '" fill="' + fill + '" fill-opacity=".85"/>' +
+      '<path d="' + body + '" fill="none" stroke="' + color + '" stroke-width="1.9" stroke-linejoin="round"/>' +
+      (over ? '<path d="M27.5 10.5 q2.4 3.6 0 5.6 q-2.4 -2 0 -5.6z" fill="var(--bad)"/>' : "") +
+      "</svg>";
+  }
+  function barHtml(real, plan, planTo, st, thin, color) {
+    const frac = plan > 0 ? Math.min(1, real / plan) : (real > 0 ? 1 : 0);
+    const over = plan > 0 ? real > plan : real > 0;
+    const mark = (!st.isPast && !st.isFuture && plan > 0) ? Math.min(100, planTo / plan * 100) : null;
+    const style = (!over && color) ? ' style="width:' + (frac * 100).toFixed(1) + '%;background:' + color + '"' : ' style="width:' + (frac * 100).toFixed(1) + '%"';
+    return '<div class="bar-track' + (thin ? " thin" : "") + '"><div class="bar-fill' + (over ? " over" : "") + '"' + style + '></div>' +
+      (mark !== null ? '<div class="bar-mark" style="left:calc(' + mark.toFixed(1) + '% - 1px)" title="Previsto até hoje"></div>' : "") + "</div>";
+  }
+  function chartSvg(st) {
+    const W = 340, H = 156, pl = 6, pr = 8, pt = 22, pb = 22;
+    const D = st.D, up = st.up;
+    const plannedCum = [], realCum = [];
+    for (let d = 0; d <= D; d++) plannedCum.push(S.buckets.reduce((s, b) => s + planned(b, st.y, st.m, d), 0));
+    const perDay = new Array(D + 1).fill(0);
+    st.exps.forEach(e => { const d = parseInt(e.data.slice(8, 10), 10); if (d >= 1 && d <= D) perDay[d] += Number(e.valor) || 0; });
+    let acc = 0; for (let d = 0; d <= up; d++) { acc += perDay[d]; realCum.push(acc); }
+    const max = Math.max(st.tot.plan, acc, 1) * 1.08;
+    const x = d => pl + (W - pl - pr) * d / D;
+    const yv = v => pt + (H - pt - pb) * (1 - v / max);
+    const base = yv(0);
+    const pPath = plannedCum.map((v, d) => (d ? "L" : "M") + x(d).toFixed(1) + " " + yv(v).toFixed(1)).join(" ");
+    let out = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Gasto acumulado do mês comparado ao planejado">';
+    // orçamento total
+    if (st.tot.plan > 0) {
+      out += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + yv(st.tot.plan).toFixed(1) + '" y2="' + yv(st.tot.plan).toFixed(1) + '" stroke="var(--line)" stroke-width="1"/>';
+      out += '<text x="' + pl + '" y="' + (yv(st.tot.plan) - 6).toFixed(1) + '" font-size="10.5" fill="var(--muted)" font-family="Manrope, sans-serif">Orçamento ' + esc(money0(st.tot.plan)) + "</text>";
+    }
+    out += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + base + '" y2="' + base + '" stroke="var(--line)" stroke-width="1"/>';
+    out += '<path d="' + pPath + '" fill="none" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="4 4"/>';
+    if (up > 0) {
+      const rPts = realCum.map((v, d) => x(d).toFixed(1) + " " + yv(v).toFixed(1));
+      const over = acc > plannedCum[up];
+      const col = over ? "var(--warn)" : "var(--accent)";
+      out += '<path d="M' + rPts.join(" L") + " L" + x(up).toFixed(1) + " " + base + " L" + x(0) + " " + base + ' Z" fill="' + col + '" fill-opacity=".14"/>';
+      out += '<path d="M' + rPts.join(" L") + '" fill="none" stroke="' + col + '" stroke-width="2.4" stroke-linejoin="round"/>';
+      out += '<circle cx="' + x(up).toFixed(1) + '" cy="' + yv(acc).toFixed(1) + '" r="4" fill="' + col + '" stroke="var(--surface)" stroke-width="2"/>';
+      if (st.isCur) {
+        const tx = x(up), anchor = tx > W - 60 ? "end" : tx < 40 ? "start" : "middle";
+        out += '<text x="' + tx.toFixed(1) + '" y="' + (H - 6) + '" font-size="10.5" font-weight="700" text-anchor="' + anchor + '" fill="var(--ink)" font-family="Manrope, sans-serif">hoje, ' + T.d + "</text>";
+      }
+    }
+    const lbl = (d, a) => '<text x="' + x(d).toFixed(1) + '" y="' + (H - 6) + '" font-size="10.5" text-anchor="' + a + '" fill="var(--muted)" font-family="Manrope, sans-serif">' + d + "</text>";
+    if (!(st.isCur && up < 4)) out += lbl(1, "start");
+    if (!(st.isCur && up > D - 4)) out += lbl(D, "end");
+    out += "</svg>";
+    return out;
+  }
+
+  // ---------- Telas ----------
+  function exampleBanner() {
+    const has = S.buckets.some(b => b.exemplo) || S.expenses.some(e => e.exemplo);
+    if (!has || !S.canWrite) return "";
+    return '<div class="banner"><div><b>Estes baldinhos e gastos são exemplos</b> para vocês verem o app funcionando. Apague quando forem começar de verdade.</div>' +
+      '<div class="acts">' + (S.confirmEx
+        ? '<button type="button" class="btn small danger armed" data-act="clearExOk">Confirmar: apagar exemplos</button><button type="button" class="btn small ghost" data-act="clearExNo">Manter</button>'
+        : '<button type="button" class="btn small ghost" data-act="clearEx">Apagar exemplos</button>') + "</div></div>";
+  }
+  function demoBanner() {
+    if (S.mode !== "demo") return "";
+    return '<div class="banner"><div><b>Modo demonstração.</b> Nada fica salvo nesta visualização. Abra o app pelo link no claude.ai, com a sua conta, para usar a conta compartilhada da família.</div></div>';
+  }
+
+  function renderMes() {
+    const st = monthStats();
+    if (!S.buckets.length && !st.exps.length) return demoBanner() + emptyBuckets();
+    const t = st.tot; const s = status(t.real, t.plan, t.planTo, st);
+    const pace = t.planTo - t.real;
+    let h = demoBanner() + exampleBanner();
+    h += '<section class="card" aria-label="Resumo do mês">' +
+      '<div class="rowhead" style="padding:0"><p class="h2">Orçamento de ' + MESES[st.m].toLowerCase() + '</p><span class="chip ' + s.cls + '">' + esc(s.txt) + "</span></div>" +
+      '<div style="margin-top:12px" class="big num">' + money(t.real) + "</div>" +
+      '<div class="big-of num">gastos de ' + money(t.plan) + " planejados</div>" +
+      barHtml(t.real, t.plan, t.planTo, st) +
+      '<dl class="stats num">' +
+      '<div class="stat"><dt>' + (st.isPast ? "Planejado" : "Previsto até hoje") + "</dt><dd>" + money0(st.isPast ? t.plan : t.planTo) + "</dd></div>" +
+      '<div class="stat"><dt>Desvio no ritmo</dt><dd style="color:var(--' + (st.isFuture ? "muted" : pace >= 0 ? "good" : "bad") + ')">' + (st.isFuture ? "—" : (pace >= 0 ? "+" : "−") + money0(Math.abs(pace))) + "</dd></div>" +
+      '<div class="stat"><dt>Saldo do mês</dt><dd style="color:var(--' + (t.plan - t.real >= 0 ? "ink" : "bad") + ')">' + (t.plan - t.real < 0 ? "−" : "") + money0(Math.abs(t.plan - t.real)) + "</dd></div>" +
+      "</dl>" +
+      (!st.isPast && !st.isFuture ? '<div class="legend"><span><i class="lg-mark"></i>quanto o plano previa gastar até hoje</span></div>' : "") +
+      "</section>";
+    if (!st.isFuture) {
+      h += '<section class="card" aria-label="Ritmo do mês"><p class="h2">Ritmo do mês</p><p class="sub">Linha tracejada: gasto acumulado previsto pelo plano. Área: o que a família gastou.</p><div class="chart">' + chartSvg(st) + "</div></section>";
+    }
+    h += '<div class="rowhead"><p class="h2">Por baldinho</p><span class="sub">realizado / planejado</span></div>';
+    h += '<div class="list">' + st.rows.map(r => bucketRow(r, st)).join("") + "</div>";
+    h += '<p class="note">Desvio positivo (verde) é economia em relação ao ritmo planejado; negativo (laranja/vermelho) é gasto acima do previsto.</p>';
+    return h;
+  }
+  function bucketRow(r, st) {
+    const b = r.b; const s = status(r.real, r.plan, r.planTo, st);
+    const over = r.plan > 0 ? r.real > r.plan : r.real > 0;
+    let per = "";
+    if (r.periodo) {
+      const p = r.periodo;
+      if (p.tipo === "dia") {
+        per = p.vale ? 'Hoje: <b class="num">' + money(p.gasto) + "</b> de " + money0(p.limite) + (p.gasto > p.limite ? ' · <span style="color:var(--bad);font-weight:700">passou ' + money0(p.gasto - p.limite) + "</span>" : " · restam " + money0(p.limite - p.gasto))
+          : "Hoje não conta para este baldinho (" + DIAS_SEM[dow(T.y, T.m, T.d)] + ")" + (p.gasto > 0 ? ' · gasto hoje <b class="num">' + money(p.gasto) + "</b>" : "");
+      } else if (p.tipo === "semana") {
+        per = 'Esta semana: <b class="num">' + money(p.gasto) + "</b> de " + money0(p.limite) + (p.gasto > p.limite ? ' · <span style="color:var(--bad);font-weight:700">passou ' + money0(p.gasto - p.limite) + "</span>" : " · restam " + money0(p.limite - p.gasto));
+      } else {
+        const rest = p.limite - p.gasto;
+        per = rest >= 0 ? 'Disponível no mês: <b class="num">' + money(rest) + "</b>" : "";
+      }
+    }
+    const tag = b.semBalde ? "div" : "button";
+    return "<" + tag + (b.semBalde ? ' class="item"' : ' type="button" class="item" data-act="openBucket" data-id="' + esc(b.id) + '"') + ">" +
+      bucketSvg(b.cor || CORES[0], r.plan > 0 ? r.real / r.plan : (r.real > 0 ? 1 : 0), over) +
+      '<div style="min-width:0"><div class="item-top"><span class="item-name">' + esc(b.nome) + '</span><span class="item-val num">' + money0(r.real) + ' <span style="color:var(--muted);font-weight:500">/ ' + money0(r.plan) + "</span></span></div>" +
+      '<div class="item-meta"><span>' + (b.semBalde ? "Gastos de baldinhos apagados" : esc(ruleLabel(b))) + '</span><span class="chip ' + s.cls + '">' + esc(s.txt) + "</span></div>" +
+      barHtml(r.real, r.plan, r.planTo, st, true, b.cor) +
+      (per ? '<div class="period">' + per + "</div>" : "") +
+      "</div></" + tag + ">";
+  }
+  function emptyBuckets() {
+    return '<div class="card empty">' + bucketSvg("var(--accent)", 0, false, 56) +
+      '<p class="h2">Nenhum baldinho ainda</p><p class="sub" style="max-width:30ch">Crie um baldinho para cada tipo de gasto, com um limite por dia, semana ou mês.</p>' +
+      (S.canWrite ? '<button type="button" class="btn primary" data-act="newBucket">Criar o primeiro baldinho</button>' : "") + "</div>";
+  }
+
+  function renderLanc() {
+    const st = monthStats();
+    let exps = st.exps.slice();
+    if (S.filtro) exps = exps.filter(e => e.bucketId === S.filtro);
+    exps.sort((a, b) => a.data < b.data ? 1 : a.data > b.data ? -1 : (b.criadoEm || 0) - (a.criadoEm || 0));
+    const bmap = Object.fromEntries(S.buckets.map(b => [b.id, b]));
+    let h = demoBanner();
+    h += '<div class="filters" role="group" aria-label="Filtrar por baldinho"><button type="button" class="fchip" data-act="filtro" data-id="" aria-pressed="' + (!S.filtro) + '">Todos</button>' +
+      S.buckets.slice().sort((a, b) => (a.ordem || 0) - (b.ordem || 0)).map(b => '<button type="button" class="fchip" data-act="filtro" data-id="' + esc(b.id) + '" aria-pressed="' + (S.filtro === b.id) + '"><span class="dot" style="background:' + esc(b.cor) + '"></span>' + esc(b.nome) + "</button>").join("") + "</div>";
+    const total = exps.reduce((s, e) => s + (Number(e.valor) || 0), 0);
+    h += '<div class="rowhead"><p class="h2">' + exps.length + (exps.length === 1 ? " lançamento" : " lançamentos") + '</p><span class="h2 num">' + money(total) + "</span></div>";
+    if (!exps.length) {
+      return h + '<div class="card empty"><p class="h2">Nada lançado em ' + MESES[S.m].toLowerCase() + '</p><p class="sub">Toque em “Lançar gasto” para registrar a primeira despesa.</p></div>';
+    }
+    const groups = [];
+    exps.forEach(e => { const g = groups[groups.length - 1]; if (g && g.data === e.data) g.items.push(e); else groups.push({ data: e.data, items: [e] }); });
+    groups.forEach(g => {
+      const [yy, mm, dd] = g.data.split("-").map(Number);
+      const dt = new Date(yy, mm - 1, dd);
+      const lab = (g.data === todayKey ? "hoje, " : "") + DIAS_SEM[dt.getDay()].slice(0, 3) + ", " + dd + " " + MES_CURTO[mm - 1];
+      const tot = g.items.reduce((s, e) => s + (Number(e.valor) || 0), 0);
+      h += '<div><div class="dayhead"><span>' + lab + '</span><span class="num">' + money(tot) + '</span></div><div class="list">' +
+        g.items.map(e => {
+          const b = bmap[e.bucketId];
+          const who = whoLabel(e);
+          const inner = '<span class="dot" style="background:' + esc(b ? b.cor : "var(--muted)") + '"></span>' +
+            '<span style="min-width:0"><span class="exp-t" style="display:block">' + esc(e.descricao || (b ? b.nome : "Gasto")) + '</span><span class="exp-m" style="display:block">' + esc(b ? b.nome : "Sem baldinho") + (who ? " · por " + esc(who) : "") + "</span></span>" +
+            '<span class="exp-v num">' + money(e.valor) + "</span>";
+          return S.canWrite ? '<button type="button" class="exp" data-act="editExp" data-id="' + esc(e.id) + '">' + inner + "</button>" : '<div class="exp">' + inner + "</div>";
+        }).join("") + "</div></div>";
+    });
+    return h;
+  }
+
+  function renderBaldes() {
+    const { y, m } = S;
+    const bs = S.buckets.slice().sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+    let h = demoBanner();
+    if (!bs.length) return h + emptyBuckets();
+    const tot = bs.reduce((s, b) => s + planned(b, y, m), 0);
+    h += '<section class="card"><p class="sub" style="margin:0">Orçamento total de ' + MESES[m].toLowerCase() + '</p><div class="big num" style="margin-top:4px">' + money(tot) + '</div><p class="sub">Soma dos limites de ' + bs.length + (bs.length === 1 ? " baldinho" : " baldinhos") + ", convertidos para o mês.</p></section>";
+    h += '<div class="rowhead"><p class="h2">Seus baldinhos</p>' + (S.canWrite ? '<button type="button" class="btn small primary" data-act="newBucket">Novo baldinho</button>' : "") + "</div>";
+    h += '<div class="list">' + bs.map(b => {
+      const p = planned(b, y, m);
+      const inner = bucketSvg(b.cor, 0.62, false) +
+        '<div style="min-width:0"><div class="item-top"><span class="item-name">' + esc(b.nome) + '</span><span class="item-val num">' + money0(p) + '</span></div>' +
+        '<div class="item-meta"><span>' + esc(ruleLabel(b)) + "</span><span>" + esc(ruleExplain(b, y, m)) + "</span></div></div>";
+      return S.canWrite ? '<button type="button" class="item" data-act="editBucket" data-id="' + esc(b.id) + '">' + inner + "</button>" : '<div class="item">' + inner + "</div>";
+    }).join("") + "</div>";
+    h += '<p class="note">A regra de cada baldinho vale para todos os meses. Dias úteis são de segunda a sexta; feriados contam como dia útil.</p>';
+    return h;
+  }
+
+  function render() {
+    $("mLabel").textContent = MES_CURTO[S.m].replace(/^./, c => c.toUpperCase()) + " " + S.y;
+    const sync = $("sync");
+    if (S.mode === "live") sync.innerHTML = '<span class="live"></span>Conta da família · ao vivo' + (S.canWrite ? "" : " · só leitura");
+    else if (S.mode === "demo") sync.innerHTML = '<span class="live off"></span>Demonstração · não salva';
+    document.querySelectorAll(".nav button").forEach(b => { if (b.dataset.tab === S.tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+    $("fab").hidden = !S.canWrite || S.mode === "loading";
+    if (S.mode === "loading" || (S.mode === "live" && (!S.bLoaded || !S.eLoaded))) return;
+    svgSeq = 0;
+    const main = $("main");
+    main.innerHTML = S.tab === "mes" ? renderMes() : S.tab === "lanc" ? renderLanc() : renderBaldes();
+    if (S.sheet && S.sheet.type === "bucketDetail") renderSheet();
+  }
+
+  // ---------- Folhas (formulários e detalhe) ----------
+  function openSheet(sheet) { S.sheet = sheet; renderSheet(); $("scrim").hidden = false; $("sheet").hidden = false; const f = $("sheet").querySelector("[autofocus]"); if (f) setTimeout(() => f.focus(), 30); }
+  function closeSheet() { S.sheet = null; $("scrim").hidden = true; $("sheet").hidden = true; $("sheet").innerHTML = ""; }
+  function sheetHead(title, sub) {
+    return '<div class="grab"></div><div class="sheet-h"><div style="min-width:0"><p class="h2" style="font-size:20px">' + esc(title) + "</p>" + (sub ? '<p class="sub">' + sub + "</p>" : "") + '</div><button type="button" class="x" data-act="closeSheet" aria-label="Fechar">×</button></div>';
+  }
+  function renderSheet() {
+    const s = S.sheet; const el = $("sheet"); if (!s) return;
+    if (s.type === "exp") el.innerHTML = expForm(s);
+    else if (s.type === "bucket") { el.innerHTML = bucketForm(s); updateBucketPreview(); }
+    else if (s.type === "bucketDetail") el.innerHTML = bucketDetail(s);
+  }
+  function expForm(s) {
+    const e = s.id ? S.expenses.find(x => x.id === s.id) : null;
+    const bs = S.buckets.slice().sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+    const isCur = S.y === T.y && S.m === T.m;
+    const data = e ? e.data : (isCur ? todayKey : dateKey(S.y, S.m, 1));
+    const sel = e ? e.bucketId : (s.bucketId || (bs[0] && bs[0].id));
+    if (!bs.length) return sheetHead("Lançar gasto") + '<p class="sub">Crie um baldinho antes de lançar gastos.</p><div class="acts-row" style="margin-top:16px"><span></span><button type="button" class="btn primary" data-act="newBucket">Criar baldinho</button></div>';
+    return sheetHead(e ? "Editar gasto" : "Lançar gasto", e && whoLabel(e) ? "Lançado por " + esc(whoLabel(e)) : "") +
+      '<form class="form" id="expForm" novalidate>' +
+      '<div class="field"><label for="fValor">Valor</label><div class="amount"><span>R$</span><input id="fValor" inputmode="decimal" autocomplete="off" placeholder="0,00" value="' + esc(e ? fmtInput(e.valor.toFixed ? e.valor.toFixed(2) : e.valor) : "") + '" autofocus></div></div>' +
+      '<div class="field"><span class="lbl" id="lblB">Baldinho</span><div class="pick" role="radiogroup" aria-labelledby="lblB">' +
+      bs.map(b => '<label><input type="radio" name="fBucket" id="fB-' + esc(b.id) + '" value="' + esc(b.id) + '"' + (b.id === sel ? " checked" : "") + '><span><i class="dot" style="background:' + esc(b.cor) + '"></i>' + esc(b.nome) + "</span></label>").join("") +
+      "</div></div>" +
+      '<div class="field"><label for="fData">Data</label><input class="inp" type="date" id="fData" value="' + esc(data) + '"></div>' +
+      '<div class="field"><label for="fDesc">Descrição (opcional)</label><input class="inp" id="fDesc" maxlength="80" placeholder="Ex.: padaria, farmácia, gasolina" value="' + esc(e ? e.descricao : "") + '"></div>' +
+      '<div class="err" id="fErr" aria-live="polite"></div>' +
+      '<div class="acts-row">' + (e ? '<button type="button" class="btn danger' + (s.confirm ? " armed" : "") + '" data-act="delExp">' + (s.confirm ? "Confirmar exclusão" : "Excluir") + "</button>" : "<span></span>") +
+      '<div class="grow"><button type="button" class="btn ghost" data-act="closeSheet">Cancelar</button><button type="submit" class="btn primary">' + (e ? "Salvar" : "Lançar") + "</button></div></div>" +
+      "</form>";
+  }
+  function bucketForm(s) {
+    const b = s.id ? S.buckets.find(x => x.id === s.id) : null;
+    const per = b ? b.periodo : "mes", dias = b ? (b.dias || "todos") : "uteis";
+    const cor = b ? b.cor : CORES[S.buckets.length % CORES.length];
+    const radio = (name, val, label, cur) => '<label><input type="radio" name="' + name + '" id="' + name + "-" + val + '" value="' + val + '"' + (val === cur ? " checked" : "") + "><span>" + label + "</span></label>";
+    return sheetHead(b ? "Editar baldinho" : "Novo baldinho") +
+      '<form class="form" id="bucketForm" novalidate>' +
+      '<div class="field"><label for="fNome">Nome</label><input class="inp" id="fNome" maxlength="40" placeholder="Ex.: Mercado, Almoço, Lazer" value="' + esc(b ? b.nome : "") + '" autofocus></div>' +
+      '<div class="field"><span class="lbl" id="lblC">Cor</span><div class="swatches" role="radiogroup" aria-labelledby="lblC">' +
+      CORES.map((c, i) => '<label><input type="radio" name="fCor" id="fCor-' + i + '" value="' + c + '"' + (c === cor ? " checked" : "") + ' aria-label="Cor ' + (i + 1) + '"><span style="background:' + c + '"></span></label>').join("") + "</div></div>" +
+      '<div class="field"><span class="lbl" id="lblP">Limite controlado por</span><div class="seg" role="radiogroup" aria-labelledby="lblP">' +
+      radio("fPer", "dia", "Dia", per) + radio("fPer", "semana", "Semana", per) + radio("fPer", "mes", "Mês", per) + "</div></div>" +
+      '<div class="field" id="diasField"' + (per === "dia" ? "" : " hidden") + '><span class="lbl" id="lblD">Quais dias contam</span><div class="seg" role="radiogroup" aria-labelledby="lblD">' +
+      radio("fDias", "uteis", "Dias úteis", dias) + radio("fDias", "fds", "Fins de semana", dias) + radio("fDias", "todos", "Todos", dias) + "</div></div>" +
+      '<div class="field"><label for="fBValor" id="lblV">Limite</label><div class="amount"><span>R$</span><input id="fBValor" inputmode="decimal" autocomplete="off" placeholder="0,00" value="' + esc(b ? fmtInput(b.valor) : "") + '"></div></div>' +
+      '<div class="preview" id="fPrev" aria-live="polite"></div>' +
+      '<div class="err" id="fErr" aria-live="polite"></div>' +
+      '<div class="acts-row">' + (b ? '<button type="button" class="btn danger' + (s.confirm ? " armed" : "") + '" data-act="delBucket">' + (s.confirm ? "Confirmar exclusão" : "Excluir") + "</button>" : "<span></span>") +
+      '<div class="grow"><button type="button" class="btn ghost" data-act="closeSheet">Cancelar</button><button type="submit" class="btn primary">Salvar</button></div></div>' +
+      (b && s.confirm ? '<p class="note" style="padding:0">Os gastos já lançados continuam no histórico, em “Sem baldinho”.</p>' : "") +
+      "</form>";
+  }
+  function readBucketForm() {
+    const f = $("bucketForm"); if (!f) return null;
+    const val = n => (f.querySelector('input[name="' + n + '"]:checked') || {}).value;
+    return { nome: $("fNome").value.trim(), cor: val("fCor"), periodo: val("fPer"), dias: val("fPer") === "dia" ? val("fDias") : "todos", valor: parseValor($("fBValor").value) };
+  }
+  function updateBucketPreview() {
+    const d = readBucketForm(); if (!d) return;
+    $("diasField").hidden = d.periodo !== "dia";
+    $("lblV").textContent = d.periodo === "mes" ? "Limite por mês" : d.periodo === "semana" ? "Limite por semana" : "Limite por " + diasNome(d.dias);
+    const p = $("fPrev");
+    if (!(d.valor > 0)) { p.innerHTML = "Informe o limite para ver quanto ele representa no mês."; return; }
+    const tmp = Object.assign({}, d);
+    p.innerHTML = 'Em ' + MESES[S.m].toLowerCase() + ' este baldinho terá <b class="num">' + money(planned(tmp, S.y, S.m)) + "</b><br><span class=\"sub\">" + esc(ruleExplain(tmp, S.y, S.m)) + "</span>";
+  }
+  function bucketDetail(s) {
+    const st = monthStats();
+    const r = st.rows.find(x => x.b.id === s.id);
+    if (!r) { setTimeout(closeSheet, 0); return ""; }
+    const b = r.b; const stt = status(r.real, r.plan, r.planTo, st);
+    const pace = r.planTo - r.real;
+    const exps = r.exps.slice().sort((a, c) => a.data < c.data ? 1 : -1);
+    let per = "";
+    if (r.periodo && r.periodo.tipo !== "mes") {
+      const p = r.periodo;
+      const lab = p.tipo === "dia" ? (p.vale ? "Hoje" : "Hoje (não conta)") : "Esta semana";
+      per = '<div class="field"><span class="lbl">' + lab + '</span><div class="item-top"><span class="num" style="font-weight:700">' + money(p.gasto) + (p.limite ? " de " + money0(p.limite) : "") + "</span>" +
+        (p.limite ? '<span class="chip ' + (p.gasto > p.limite ? "bad" : "good") + '">' + (p.gasto > p.limite ? "passou " + money0(p.gasto - p.limite) : "restam " + money0(p.limite - p.gasto)) + "</span>" : "") +
+        "</div>" + (p.limite ? barHtml(p.gasto, p.limite, 0, { isPast: true }, true, b.cor) : "") + "</div>";
+    }
+    return sheetHead(b.nome, esc(ruleLabel(b)) + " · " + esc(ruleExplain(b, S.y, S.m))) +
+      '<div class="form">' +
+      '<div style="display:flex;align-items:center;gap:14px">' + bucketSvg(b.cor, r.plan > 0 ? r.real / r.plan : 0, r.real > r.plan, 64) +
+      '<div style="min-width:0;flex:1"><div class="big num" style="font-size:30px">' + money(r.real) + '</div><div class="big-of num">de ' + money(r.plan) + ' em ' + MESES[S.m].toLowerCase() + '</div></div></div>' +
+      '<div><span class="chip ' + stt.cls + '">' + esc(stt.txt) + "</span>" + barHtml(r.real, r.plan, r.planTo, st, false, b.cor) + "</div>" +
+      '<dl class="kv num"><div><dt>Previsto até hoje</dt><dd>' + (st.isFuture ? "—" : money(r.planTo)) + '</dd></div><div><dt>Desvio no ritmo</dt><dd style="color:var(--' + (st.isFuture ? "muted" : pace >= 0 ? "good" : "bad") + ')">' + (st.isFuture ? "—" : (pace >= 0 ? "+" : "−") + money(Math.abs(pace))) + "</dd></div></dl>" +
+      per +
+      '<div class="field"><span class="lbl">' + exps.length + (exps.length === 1 ? " gasto" : " gastos") + " no mês</span>" +
+      (exps.length ? '<div class="list" style="background:var(--bg)">' + exps.map(e => {
+        const [, mm, dd] = e.data.split("-").map(Number); const who = whoLabel(e);
+        const inner = '<span class="dot" style="background:' + esc(b.cor) + '"></span><span style="min-width:0"><span class="exp-t" style="display:block">' + esc(e.descricao || b.nome) + '</span><span class="exp-m" style="display:block">' + dd + " " + MES_CURTO[mm - 1] + (who ? " · por " + esc(who) : "") + '</span></span><span class="exp-v num">' + money(e.valor) + "</span>";
+        return S.canWrite ? '<button type="button" class="exp" data-act="editExp" data-id="' + esc(e.id) + '">' + inner + "</button>" : '<div class="exp">' + inner + "</div>";
+      }).join("") + "</div>" : '<p class="sub">Nenhum gasto neste mês.</p>') + "</div>" +
+      (S.canWrite ? '<div class="acts-row"><button type="button" class="btn ghost" data-act="editBucket" data-id="' + esc(b.id) + '">Editar baldinho</button><button type="button" class="btn primary" data-act="newExp" data-bucket="' + esc(b.id) + '">Lançar aqui</button></div>' : "") +
+      "</div>";
+  }
+
+  async function submitExp() {
+    const s = S.sheet; const err = $("fErr");
+    const valor = parseValor($("fValor").value);
+    const bsel = document.querySelector('input[name="fBucket"]:checked');
+    const data = $("fData").value;
+    if (!(valor > 0)) { err.textContent = "Informe um valor maior que zero, por exemplo 45,90."; $("fValor").focus(); return; }
+    if (!bsel) { err.textContent = "Escolha em qual baldinho o gasto entra."; return; }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) { err.textContent = "Escolha a data do gasto."; return; }
+    const old = s.id ? S.expenses.find(x => x.id === s.id) : null;
+    const doc = {
+      id: old ? old.id : uid("g"), bucketId: bsel.value, valor, data, month: data.slice(0, 7),
+      descricao: $("fDesc").value.trim(), por: old ? (old.por || null) : (S.me || null),
+      criadoEm: old ? (old.criadoEm || Date.now()) : Date.now()
+    };
+    if (old && old.exemplo) doc.exemplo = true;
+    if (S.mode !== "live" && !old) doc.por = null;
+    const ok = await saveDoc("expenses", doc);
+    if (ok) {
+      closeSheet();
+      const [yy, mm] = data.split("-").map(Number);
+      toast((old ? "Gasto atualizado" : "Gasto lançado") + ": " + money(valor) + ((yy !== S.y || mm - 1 !== S.m) ? " em " + MES_CURTO[mm - 1] + " " + yy : ""));
+    }
+  }
+  async function submitBucket() {
+    const s = S.sheet; const d = readBucketForm(); const err = $("fErr");
+    if (!d.nome) { err.textContent = "Dê um nome ao baldinho."; $("fNome").focus(); return; }
+    if (!(d.valor > 0)) { err.textContent = "Informe o limite, por exemplo 300 ou 45,90."; $("fBValor").focus(); return; }
+    const old = s.id ? S.buckets.find(x => x.id === s.id) : null;
+    const doc = Object.assign({}, old || {}, d, { id: old ? old.id : uid("b") });
+    if (!old) { doc.ordem = S.buckets.reduce((mx, b) => Math.max(mx, b.ordem || 0), 0) + 1; doc.criadoEm = Date.now(); doc.criadoPor = S.me || null; }
+    const ok = await saveDoc("buckets", doc);
+    if (ok) { closeSheet(); toast(old ? "Baldinho atualizado" : "Baldinho criado"); }
+  }
+
+  // ---------- Eventos ----------
+  document.addEventListener("click", async ev => {
+    const t = ev.target.closest("[data-act]"); if (!t) return;
+    const act = t.dataset.act;
+    if (act === "tab") { S.tab = t.dataset.tab; render(); $("main").scrollTop = 0; }
+    else if (act === "prevM" || act === "nextM") {
+      const [y, m] = act === "prevM" ? prevMonth(S.y, S.m) : nextMonth(S.y, S.m);
+      S.y = y; S.m = m;
+      if (S.mode === "live") { subscribeExpenses(); render(); } else render();
+    }
+    else if (act === "newExp") { if (!S.canWrite) return; openSheet({ type: "exp", bucketId: t.dataset.bucket || null }); }
+    else if (act === "editExp") openSheet({ type: "exp", id: t.dataset.id });
+    else if (act === "openBucket") openSheet({ type: "bucketDetail", id: t.dataset.id });
+    else if (act === "newBucket") openSheet({ type: "bucket" });
+    else if (act === "editBucket") openSheet({ type: "bucket", id: t.dataset.id });
+    else if (act === "closeSheet") closeSheet();
+    else if (act === "filtro") { S.filtro = t.dataset.id || null; render(); }
+    else if (act === "clearEx") { S.confirmEx = true; render(); }
+    else if (act === "clearExNo") { S.confirmEx = false; render(); }
+    else if (act === "clearExOk") { t.disabled = true; t.textContent = "Apagando…"; await clearExamples(); }
+    else if (act === "delExp" || act === "delBucket") {
+      const s = S.sheet;
+      if (!s.confirm) {
+        // guarda o que já foi digitado antes de redesenhar
+        s.confirm = true;
+        const keep = {}; $("sheet").querySelectorAll("input").forEach(i => { keep[i.id] = i.type === "radio" ? i.checked : i.value; });
+        renderSheet();
+        $("sheet").querySelectorAll("input").forEach(i => { if (i.id in keep) { if (i.type === "radio") i.checked = keep[i.id]; else i.value = keep[i.id]; } });
+        if (act === "delBucket") updateBucketPreview();
+        return;
+      }
+      const ok = await deleteDoc(act === "delExp" ? "expenses" : "buckets", s.id);
+      if (ok) { closeSheet(); toast(act === "delExp" ? "Gasto excluído" : "Baldinho excluído"); }
+    }
+  });
+  document.addEventListener("submit", ev => {
+    ev.preventDefault();
+    if (ev.target.id === "expForm") submitExp();
+    else if (ev.target.id === "bucketForm") submitBucket();
+  });
+  document.addEventListener("input", ev => { if (ev.target.closest("#bucketForm")) updateBucketPreview(); });
+  document.addEventListener("change", ev => { if (ev.target.closest("#bucketForm")) updateBucketPreview(); });
+  document.addEventListener("keydown", ev => { if (ev.key === "Escape" && S.sheet) closeSheet(); });
+
+  let toastTimer = null;
+  function toast(msg) {
+    const el = $("toast"); el.textContent = msg; el.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 2600);
+  }
+
+  // ---------- Início ----------
+  function startDemo() {
+    const d = sampleData(T.y, T.m);
+    S.mode = "demo"; S.buckets = d.buckets; S.expenses = d.expenses; S.canWrite = true;
+    render();
+  }
+  async function start() {
+    render();
+    const c = window.claude;
+    if (!c || typeof c.use !== "function") { startDemo(); return; }
+    let db = null, user = null;
+    try { [db, user] = await Promise.all([c.use("db"), c.use("user")]); } catch (e) { db = null; }
+    if (!db) { startDemo(); return; }
+    S.db = db; S.user = user; S.mode = "live";
+    if (user) {
+      try { S.me = await user.id(); } catch (e) { S.me = null; }
+      try { const w = await user.can("data.write"); if (w === false) S.canWrite = false; } catch (e) { /* mantém */ }
+    }
+    subscribeBuckets();
+    subscribeExpenses();
+    render();
+  }
+  start();
+})();
+</script>
