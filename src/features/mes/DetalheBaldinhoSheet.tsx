@@ -3,6 +3,7 @@ import { useMes, useVisaoMes } from '../../app/hooks';
 import { useFamilia } from '../../app/sessao';
 import { Sheet } from '../../components/Sheet';
 import { BucketIcon, ProgressBar, StatusChip } from '../../components/ui';
+import { periodoDoCiclo } from '../../domain/ciclo';
 import { nomeMes } from '../../domain/datas';
 import { formatarBRL, formatarBRLInteiro, formatarComSinal } from '../../domain/dinheiro';
 import { textoApoio, textoRegra } from '../../domain/regras';
@@ -13,7 +14,7 @@ import { TextoPeriodo } from './LinhaBaldinho';
 export function DetalheBaldinhoSheet({ baldinhoId }: { baldinhoId: string }) {
   const familia = useFamilia();
   const [mes] = useMes();
-  const { visao, baldinhos } = useVisaoMes(familia.familiaId, mes);
+  const { visao, baldinhos } = useVisaoMes(familia.familiaId);
   const { abrir, fechar } = useFolhas();
   const linha = visao?.linhas.find((l) => l.baldinho.id === baldinhoId);
   const baldinho = linha?.baldinho ?? baldinhos?.find((b) => b.id === baldinhoId);
@@ -22,7 +23,7 @@ export function DetalheBaldinhoSheet({ baldinhoId }: { baldinhoId: string }) {
   const futuro = visao.tipoMes === 'futuro';
   const R = linha?.R ?? 0;
   const P = linha?.P ?? 0;
-  const apoio = textoApoio(linha?.regra ?? null, mes);
+  const apoio = textoApoio(linha?.regra ?? null, visao.ciclo);
 
   const rodape = (
     <div className="acts-row">
@@ -49,7 +50,7 @@ export function DetalheBaldinhoSheet({ baldinhoId }: { baldinhoId: string }) {
             <div className="big num" style={{ fontSize: 30 }}>
               {formatarBRL(R)}
             </div>
-            <div className="big-of num">de {formatarBRL(P)} em {nomeMes(mes)}</div>
+            <div className="big-of num">de {formatarBRL(P)} {visao.ciclo.calendario ? `em ${nomeMes(mes)}` : `no ciclo (${periodoDoCiclo(visao.ciclo)})`}</div>
           </div>
         </div>
         {linha && (

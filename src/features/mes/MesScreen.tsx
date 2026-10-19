@@ -4,6 +4,7 @@ import { useFamilia } from '../../app/sessao';
 import { textos } from '../../app/textos';
 import { RitmoChart } from '../../components/RitmoChart';
 import { BucketIcon, EmptyState, ProgressBar, StatusChip } from '../../components/ui';
+import { periodoDoCiclo } from '../../domain/ciclo';
 import { nomeMes } from '../../domain/datas';
 import { formatarBRL, formatarBRLInteiro, formatarComSinal } from '../../domain/dinheiro';
 import { LinhaBaldinho } from './LinhaBaldinho';
@@ -21,7 +22,7 @@ export function Esqueleto() {
 export function MesScreen() {
   const familia = useFamilia();
   const [mes] = useMes();
-  const { visao, baldinhos } = useVisaoMes(familia.familiaId, mes);
+  const { visao, baldinhos } = useVisaoMes(familia.familiaId);
   const { abrir } = useFolhas();
 
   if (!visao || !baldinhos) return <Esqueleto />;
@@ -54,7 +55,13 @@ export function MesScreen() {
           <p className="h2">Orçamento de {nomeMes(mes)}</p>
           <StatusChip status={total.status} />
         </div>
-        <div style={{ marginTop: 12 }} className="big num">
+        <p className="sub" style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span className="num">Ciclo de {periodoDoCiclo(visao.ciclo)}</span>
+          <button type="button" className="linkbtn" style={{ padding: '4px 0', fontSize: 13 }} onClick={() => abrir({ tipo: 'ciclo' })}>
+            Alterar
+          </button>
+        </p>
+        <div style={{ marginTop: 6 }} className="big num">
           {formatarBRL(total.R)}
         </div>
         <div className="big-of num">gastos de {formatarBRL(total.P)} planejados</div>

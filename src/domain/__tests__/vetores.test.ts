@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { contarDias, diasNoMes, intervaloDeCarga, semanaDe } from '../datas';
+import { cicloDe, intervaloDeCarga } from '../ciclo';
+import { contarDias, diasNoMes, semanaDe } from '../datas';
 import { formatarComSinal } from '../dinheiro';
-import { planejadoMes, previstoAte, regraVigente } from '../regras';
+import { planejado, previstoAte, regraVigente } from '../regras';
 import { statusDe } from '../status';
 import { montarVisaoMes } from '../visaoMes';
 import { baldinho, lanc, seedV1 } from './fixtures';
@@ -13,7 +14,7 @@ const AGO = { ano: 2026, mes: 8 };
 
 describe('V1 — outubro/2026, hoje = 2026-10-19', () => {
   const { baldinhos, lancamentos } = seedV1();
-  const v = montarVisaoMes({ mes: OUT, hoje: '2026-10-19', baldinhos, lancamentos });
+  const v = montarVisaoMes({ ciclo: cicloDe(OUT), hoje: '2026-10-19', baldinhos, lancamentos });
   const linha = (nome: string) => v.linhas.find((l) => l.baldinho.nome === nome)!;
 
   it('calendário', () => {
@@ -80,9 +81,9 @@ describe('V2 — calendário', () => {
   });
   const sem = { periodicidade: 'semana' as const, dias: 'todos' as const, valorCentavos: 20000 };
   it('semanal', () => {
-    expect(planejadoMes(sem, { ano: 2026, mes: 2 })).toBe(80000);
-    expect(planejadoMes(sem, NOV)).toBe(85714);
-    expect(previstoAte(sem, OUT, 31)).toBe(88571);
+    expect(planejado(sem, cicloDe({ ano: 2026, mes: 2 }))).toBe(80000);
+    expect(planejado(sem, cicloDe(NOV))).toBe(85714);
+    expect(previstoAte(sem, cicloDe(OUT), 31)).toBe(88571);
   });
   it('novembro', () => {
     expect(contarDias('uteis', NOV, 30)).toBe(21);
@@ -93,12 +94,12 @@ describe('V2 — calendário', () => {
 describe('V3 — semana que cruza meses', () => {
   const b = baldinho('T', [{ desde: '2026-10-01', p: 'semana', v: 20000 }]);
   const lancs = [lanc('T', '2026-10-27', 12000), lanc('T', '2026-11-01', 3000)];
-  const v = montarVisaoMes({ mes: NOV, hoje: '2026-11-01', baldinhos: [b], lancamentos: lancs });
+  const v = montarVisaoMes({ ciclo: cicloDe(NOV), hoje: '2026-11-01', baldinhos: [b], lancamentos: lancs });
   it('período e realizado', () => {
     expect(semanaDe('2026-11-01')).toEqual({ inicio: '2026-10-26', fim: '2026-11-01' });
     expect(v.linhas[0]?.periodo).toEqual({ texto: 'Esta semana: R$ 150,00 de R$ 200', complemento: 'restam R$ 50', passou: false });
     expect(v.linhas[0]?.R).toBe(3000);
-    expect(intervaloDeCarga(NOV, '2026-11-01')).toEqual({ de: '2026-10-26', ate: '2026-11-30' });
+    expect(intervaloDeCarga(cicloDe(NOV), '2026-11-01')).toEqual({ de: '2026-10-26', ate: '2026-11-30' });
   });
 });
 
@@ -106,15 +107,15 @@ describe('V4 — mês passado e futuro', () => {
   const hoje = '2026-10-19';
   const mercado = baldinho('Mercado', [{ desde: '2026-09-01', p: 'mes', v: 180000 }]);
   it('setembro', () => {
-    const v1 = montarVisaoMes({ mes: SET, hoje, baldinhos: [mercado], lancamentos: [lanc('Mercado', '2026-09-10', 175000)] });
+    const v1 = montarVisaoMes({ ciclo: cicloDe(SET), hoje, baldinhos: [mercado], lancamentos: [lanc('Mercado', '2026-09-10', 175000)] });
     expect(v1.t).toBe(30);
     expect(v1.linhas[0]?.Pt).toBe(180000);
     expect(v1.linhas[0]?.status).toEqual({ texto: 'Sobrou R$ 50', tom: 'positivo' });
-    const v2 = montarVisaoMes({ mes: SET, hoje, baldinhos: [mercado], lancamentos: [lanc('Mercado', '2026-09-10', 180000)] });
+    const v2 = montarVisaoMes({ ciclo: cicloDe(SET), hoje, baldinhos: [mercado], lancamentos: [lanc('Mercado', '2026-09-10', 180000)] });
     expect(v2.linhas[0]?.status).toEqual({ texto: 'No limite', tom: 'neutro' });
   });
   it('novembro', () => {
-    const v = montarVisaoMes({ mes: NOV, hoje, baldinhos: [mercado], lancamentos: [] });
+    const v = montarVisaoMes({ ciclo: cicloDe(NOV), hoje, baldinhos: [mercado], lancamentos: [] });
     expect(v.t).toBe(0);
     expect(v.linhas[0]?.Pt).toBe(0);
     expect(v.linhas[0]?.status).toEqual({ texto: 'Planejado', tom: 'neutro' });
@@ -128,12 +129,12 @@ describe('V5 — vigência de regra', () => {
     { desde: '2026-11-01', p: 'dia', dias: 'uteis', v: 5000 },
   ]);
   it('planejado por mês', () => {
-    expect(planejadoMes(regraVigente(almoco, OUT), OUT)).toBe(99000);
-    expect(planejadoMes(regraVigente(almoco, NOV), NOV)).toBe(105000);
+    expect(planejado(regraVigente(almoco, OUT), cicloDe(OUT))).toBe(99000);
+    expect(planejado(regraVigente(almoco, NOV), cicloDe(NOV))).toBe(105000);
     expect(regraVigente(almoco, AGO)).toBeNull();
   });
   it('agosto com lançamento fica fora do plano', () => {
-    const v = montarVisaoMes({ mes: AGO, hoje: '2026-10-19', baldinhos: [almoco], lancamentos: [lanc('Almoço', '2026-08-05', 3000)] });
+    const v = montarVisaoMes({ ciclo: cicloDe(AGO), hoje: '2026-10-19', baldinhos: [almoco], lancamentos: [lanc('Almoço', '2026-08-05', 3000)] });
     expect(v.linhas[0]?.P).toBe(0);
     expect(v.linhas[0]?.status).toEqual({ texto: 'Fora do plano', tom: 'critico' });
   });
@@ -143,14 +144,14 @@ describe('V6 — arquivamento', () => {
   const casa = baldinho('Casa', [{ desde: '2026-10-01', p: 'mes', v: 40000 }], { arquivadoDesde: '2026-11-01' });
   const hoje = '2026-11-15';
   it('outubro normal', () => {
-    const v = montarVisaoMes({ mes: OUT, hoje, baldinhos: [casa], lancamentos: [] });
+    const v = montarVisaoMes({ ciclo: cicloDe(OUT), hoje, baldinhos: [casa], lancamentos: [] });
     expect(v.linhas[0]?.P).toBe(40000);
   });
   it('novembro sem lançamento não aparece', () => {
-    expect(montarVisaoMes({ mes: NOV, hoje, baldinhos: [casa], lancamentos: [] }).linhas).toHaveLength(0);
+    expect(montarVisaoMes({ ciclo: cicloDe(NOV), hoje, baldinhos: [casa], lancamentos: [] }).linhas).toHaveLength(0);
   });
   it('novembro com lançamento aparece fora do plano', () => {
-    const v = montarVisaoMes({ mes: NOV, hoje, baldinhos: [casa], lancamentos: [lanc('Casa', '2026-11-03', 5000)] });
+    const v = montarVisaoMes({ ciclo: cicloDe(NOV), hoje, baldinhos: [casa], lancamentos: [lanc('Casa', '2026-11-03', 5000)] });
     expect(v.linhas[0]?.P).toBe(0);
     expect(v.linhas[0]?.arquivado).toBe(true);
     expect(v.linhas[0]?.status).toEqual({ texto: 'Fora do plano', tom: 'critico' });
@@ -167,7 +168,7 @@ describe('V7 — tolerância', () => {
 describe('V8 — dia que não conta', () => {
   it('domingo com gasto', () => {
     const almoco = baldinho('Almoço', [{ desde: '2026-10-01', p: 'dia', dias: 'uteis', v: 4500 }]);
-    const v = montarVisaoMes({ mes: OUT, hoje: '2026-10-18', baldinhos: [almoco], lancamentos: [lanc('Almoço', '2026-10-18', 2500)] });
+    const v = montarVisaoMes({ ciclo: cicloDe(OUT), hoje: '2026-10-18', baldinhos: [almoco], lancamentos: [lanc('Almoço', '2026-10-18', 2500)] });
     const p = v.linhas[0]?.periodo;
     expect(`${p?.texto} · ${p?.complemento}`).toBe('Hoje não conta para este baldinho (domingo) · gasto hoje R$ 25,00');
   });

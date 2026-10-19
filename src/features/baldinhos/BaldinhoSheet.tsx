@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useFolhas } from '../../app/folhas';
-import { useBaldinhos, useMes, useOnline } from '../../app/hooks';
+import { useBaldinhos, useConfigCiclos, useMes, useOnline } from '../../app/hooks';
+import { cicloDe, CONFIG_CICLOS_PADRAO } from '../../domain/ciclo';
 import { useFamilia } from '../../app/sessao';
 import { CORES_BALDINHO, textos } from '../../app/textos';
 import { Sheet } from '../../components/Sheet';
@@ -10,7 +11,7 @@ import { arquivarBaldinho, atualizarBaldinho, criarBaldinho, salvarRegra } from 
 import { mensagemDeErro } from '../../data/supabase';
 import { nomeMes, nomeMesAno, primeiroDia, somarMeses } from '../../domain/datas';
 import { centavosParaTexto, formatarBRL, parseValor, VALOR_MAXIMO } from '../../domain/dinheiro';
-import { arquivadoEm, normalizarNome, planejadoMes, regraVigente, rotuloLimite, textoApoio } from '../../domain/regras';
+import { arquivadoEm, normalizarNome, planejado, regraVigente, rotuloLimite, textoApoio } from '../../domain/regras';
 import type { Baldinho, DiasQueContam, MesRef, Periodicidade } from '../../domain/tipos';
 
 /** Formulário de baldinho (RF-10, RF-11, RF-13). Exige conexão. */
@@ -20,6 +21,7 @@ export function BaldinhoSheet({ baldinho }: { baldinho?: Baldinho }) {
   const toast = useToast();
   const online = useOnline();
   const [mes] = useMes();
+  const config = useConfigCiclos() ?? CONFIG_CICLOS_PADRAO;
   const todos = useBaldinhos(familia.familiaId) ?? [];
   const seguinte = somarMeses(mes, 1);
 
@@ -46,6 +48,7 @@ export function BaldinhoSheet({ baldinho }: { baldinho?: Baldinho }) {
       regraAtual.dias !== diasEfetivos ||
       regraAtual.valorCentavos !== valorCentavos);
   const mesPrevia: MesRef = regraMudou && vigencia === 'seguinte' ? seguinte : mes;
+  const cicloPrevia = cicloDe(mesPrevia, config);
   const regraPrevia = valorCentavos ? { periodicidade, dias: diasEfetivos, valorCentavos } : null;
   const arquivadoAgora = baldinho ? arquivadoEm(baldinho, mes) || baldinho.arquivadoDesde !== null : false;
 
@@ -216,9 +219,9 @@ export function BaldinhoSheet({ baldinho }: { baldinho?: Baldinho }) {
         <div className="preview" aria-live="polite">
           {regraPrevia ? (
             <>
-              Em {nomeMes(mesPrevia)} este baldinho terá <b className="num">{formatarBRL(planejadoMes(regraPrevia, mesPrevia))}</b>
+              Em {nomeMes(mesPrevia)} este baldinho terá <b className="num">{formatarBRL(planejado(regraPrevia, cicloPrevia))}</b>
               <br />
-              <span className="sub">{textoApoio(regraPrevia, mesPrevia)}</span>
+              <span className="sub">{textoApoio(regraPrevia, cicloPrevia)}</span>
             </>
           ) : (
             <span className="sub">Informe o limite para ver quanto o baldinho terá no mês.</span>

@@ -20,7 +20,7 @@ npm run build      # build de produção + service worker
 
 ## Configurar o Supabase (uma vez)
 
-1. **SQL Editor → New query**: cole todo o conteúdo de `supabase/migrations/0001_baldinhos.sql` e clique em **Run**.
+1. **SQL Editor → New query**: cole o conteúdo de `supabase/migrations/0001_baldinhos.sql` e clique em **Run**; depois faça o mesmo com `0002_ciclos.sql`.
 2. **Authentication → Sign In / Providers → Email**: desligue **Confirm email**.
 3. **Authentication → URL Configuration**: Site URL = endereço do app no Render.
 

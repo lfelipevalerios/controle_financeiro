@@ -1,6 +1,8 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useCallback, useEffect, useState } from 'react';
-import { useOnline } from '../../app/hooks';
+import { useFolhas } from '../../app/folhas';
+import { useCicloAtual, useConfigCiclos, useOnline } from '../../app/hooks';
+import { CONFIG_CICLOS_PADRAO, diaDeCorte, periodoDoCiclo } from '../../domain/ciclo';
 import { useFamilia, useSessao } from '../../app/sessao';
 import { useToast } from '../../components/Toast';
 import { dbLocal } from '../../data/db-local';
@@ -71,6 +73,9 @@ export function FamiliaScreen() {
   const online = useOnline();
   const toast = useToast();
   const { podeInstalar, instalar, instalado } = usePwaInstall();
+  const { abrir } = useFolhas();
+  const config = useConfigCiclos() ?? CONFIG_CICLOS_PADRAO;
+  const cicloAtual = useCicloAtual();
   const membros = useLiveQuery(() => dbLocal.membros.where('familiaId').equals(familia.familiaId).toArray(), [familia.familiaId]);
   const pendentes = useLiveQuery(() => dbLocal.fila.count(), []) ?? 0;
   const [convites, setConvites] = useState<Convite[]>([]);
@@ -150,6 +155,16 @@ export function FamiliaScreen() {
             </button>
           </div>
         </form>
+      </section>
+
+      <section className="card form" style={{ gap: 8 }}>
+        <p className="h2">Ciclo do orçamento</p>
+        <p className="sub" style={{ margin: 0 }}>
+          Dia de corte atual: <b>{diaDeCorte(cicloAtual.ref, config)}</b> · ciclo atual: <b className="num">{periodoDoCiclo(cicloAtual)}</b>
+        </p>
+        <button type="button" className="btn ghost" onClick={() => abrir({ tipo: 'ciclo' })}>
+          Configurar dia de corte
+        </button>
       </section>
 
       <div className="rowhead">

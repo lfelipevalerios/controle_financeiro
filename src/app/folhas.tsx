@@ -5,7 +5,8 @@ export type Folha =
   | { tipo: 'lancamento'; lancamento?: Lancamento; baldinhoId?: string }
   | { tipo: 'detalhe'; baldinhoId: string }
   | { tipo: 'baldinho'; baldinho?: Baldinho }
-  | { tipo: 'sugestoes' };
+  | { tipo: 'sugestoes' }
+  | { tipo: 'ciclo' };
 
 interface Folhas {
   folha: Folha | null;

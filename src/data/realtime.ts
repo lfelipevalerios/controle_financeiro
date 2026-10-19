@@ -2,6 +2,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import { atualizarEstadoSync } from './estadoSync';
 import type { LancamentoDb } from './mapeamento';
 import { sincronizarBaldinhos } from './repos/baldinhos';
+import { sincronizarCiclos } from './repos/ciclos';
 import { aplicarLancamentoRemoto } from './repos/lancamentos';
 import { supabase } from './supabase';
 
@@ -16,6 +17,7 @@ export function assinarFamilia(familiaId: string, aoReconectar: () => void): () 
     if (atrasoBaldinhos) clearTimeout(atrasoBaldinhos);
     atrasoBaldinhos = setTimeout(() => void sincronizarBaldinhos(familiaId).catch(() => {}), 300);
   };
+  const recarregarCiclos = () => void sincronizarCiclos(familiaId).catch(() => {});
 
   const canal: RealtimeChannel = supabase
     .channel(`familia:${familiaId}`)
@@ -24,6 +26,8 @@ export function assinarFamilia(familiaId: string, aoReconectar: () => void): () 
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'baldinhos', filter: filtro }, recarregarBaldinhos)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'regras_baldinho', filter: filtro }, recarregarBaldinhos)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'cortes_ciclo', filter: filtro }, recarregarCiclos)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'ajustes_ciclo', filter: filtro }, recarregarCiclos)
     .subscribe((status) => {
       if (status === 'SUBSCRIBED') {
         atualizarEstadoSync({ aoVivo: true });

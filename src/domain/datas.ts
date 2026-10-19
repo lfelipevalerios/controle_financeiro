@@ -95,13 +95,6 @@ export function tipoDoMes(m: MesRef, hoje: DataCivil): TipoMes {
   return c < 0 ? 'passado' : c > 0 ? 'futuro' : 'atual';
 }
 
-/** RN-30 */
-export function diaDeReferencia(m: MesRef, hoje: DataCivil): number {
-  const tipo = tipoDoMes(m, hoje);
-  if (tipo === 'atual') return partesData(hoje).dia;
-  return tipo === 'passado' ? diasNoMes(m) : 0;
-}
-
 /** RN-06 */
 export function diaConta(dias: DiasQueContam, diaSemana: number): boolean {
   if (dias === 'uteis') return diaSemana >= 1 && diaSemana <= 5;
@@ -116,18 +109,6 @@ export function contarDias(dias: DiasQueContam, m: MesRef, t: number): number {
     if (diaConta(dias, diaDaSemana(montarData(m.ano, m.mes, d)))) n++;
   }
   return n;
-}
-
-/** RN-63: intervalo de lançamentos a carregar para o mês. */
-export function intervaloDeCarga(m: MesRef, hoje: DataCivil): { de: DataCivil; ate: DataCivil } {
-  let de = primeiroDia(m);
-  let ate = ultimoDia(m);
-  if (tipoDoMes(m, hoje) === 'atual') {
-    const s = semanaDe(hoje);
-    if (s.inicio < de) de = s.inicio;
-    if (s.fim > ate) ate = s.fim;
-  }
-  return { de, ate };
 }
 
 /** "Out 2026" */

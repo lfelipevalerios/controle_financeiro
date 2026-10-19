@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ehDataValida, hojeSP, mesDaChave, rotuloMes, somarMeses, tipoDoMes } from '../datas';
 import { centavosParaTexto, formatarBRL, formatarBRLInteiro, parseValor } from '../dinheiro';
+import { cicloDe } from '../ciclo';
 import { periodoAtual } from '../periodo';
 import { normalizarNome, rotuloLimite, textoApoio, textoRegra } from '../regras';
 import { barraDe, nivelDoBalde, statusDe } from '../status';
@@ -42,12 +43,12 @@ describe('datas', () => {
 describe('regras: textos', () => {
   const out = { ano: 2026, mes: 10 };
   it('texto de apoio (§3)', () => {
-    expect(textoApoio({ periodicidade: 'mes', dias: 'todos' }, out)).toBe('Valor fixo do mês');
-    expect(textoApoio({ periodicidade: 'semana', dias: 'todos' }, out)).toBe('4,4 semanas em outubro');
-    expect(textoApoio({ periodicidade: 'dia', dias: 'uteis' }, out)).toBe('22 dias úteis em outubro');
-    expect(textoApoio({ periodicidade: 'dia', dias: 'fds' }, out)).toBe('9 dias de fim de semana em outubro');
-    expect(textoApoio({ periodicidade: 'dia', dias: 'todos' }, out)).toBe('31 dias em outubro');
-    expect(textoApoio(null, out)).toBe('');
+    expect(textoApoio({ periodicidade: 'mes', dias: 'todos' }, cicloDe(out))).toBe('Valor fixo do mês');
+    expect(textoApoio({ periodicidade: 'semana', dias: 'todos' }, cicloDe(out))).toBe('4,4 semanas em outubro');
+    expect(textoApoio({ periodicidade: 'dia', dias: 'uteis' }, cicloDe(out))).toBe('22 dias úteis em outubro');
+    expect(textoApoio({ periodicidade: 'dia', dias: 'fds' }, cicloDe(out))).toBe('9 dias de fim de semana em outubro');
+    expect(textoApoio({ periodicidade: 'dia', dias: 'todos' }, cicloDe(out))).toBe('31 dias em outubro');
+    expect(textoApoio(null, cicloDe(out))).toBe('');
   });
   it('regra e rótulo', () => {
     expect(textoRegra({ periodicidade: 'dia', dias: 'uteis', valorCentavos: 4500 })).toBe('R$ 45 por dia útil');
@@ -55,7 +56,7 @@ describe('regras: textos', () => {
     expect(textoRegra({ periodicidade: 'mes', dias: 'todos', valorCentavos: 180000 })).toBe('R$ 1.800 por mês');
     expect(textoRegra({ periodicidade: 'dia', dias: 'fds', valorCentavos: 100 })).toBe('R$ 1 por dia de fim de semana');
     expect(textoRegra({ periodicidade: 'dia', dias: 'todos', valorCentavos: 100 })).toBe('R$ 1 por dia');
-    expect(textoRegra(null)).toBe('Sem limite neste mês');
+    expect(textoRegra(null)).toBe('Sem limite neste ciclo');
     expect(rotuloLimite('mes', 'todos')).toBe('Limite por mês');
     expect(rotuloLimite('semana', 'todos')).toBe('Limite por semana');
     expect(rotuloLimite('dia', 'uteis')).toBe('Limite por dia útil');

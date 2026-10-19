@@ -5,18 +5,21 @@ import { Icone, Logo } from '../components/ui';
 import { useEstadoSync } from '../data/estadoSync';
 import { assinarFamilia } from '../data/realtime';
 import { sincronizarBaldinhos } from '../data/repos/baldinhos';
+import { sincronizarCiclos } from '../data/repos/ciclos';
 import { sincronizarMembros } from '../data/repos/familia';
 import { sincronizarIntervalo } from '../data/repos/lancamentos';
 import { ehErroDeRede } from '../data/supabase';
 import { iniciarSync, ouvirFilaVazia } from '../data/sync';
-import { compararMes, intervaloDeCarga, mesDe, rotuloMes, somarMeses } from '../domain/datas';
+import { intervaloDeCarga, periodoDoCiclo } from '../domain/ciclo';
+import { compararMes, rotuloMes, somarMeses } from '../domain/datas';
 import { DetalheBaldinhoSheet } from '../features/mes/DetalheBaldinhoSheet';
 import { BaldinhoSheet } from '../features/baldinhos/BaldinhoSheet';
 import { SugestoesSheet } from '../features/baldinhos/SugestoesSheet';
+import { CicloSheet } from '../features/ciclo/CicloSheet';
 import { LancamentoSheet } from '../features/lancamentos/LancamentoSheet';
 import { InstallCard, UpdateBanner } from '../pwa/banners';
 import { useFolhas } from './folhas';
-import { MESES_A_FRENTE, useHoje, useMes, usePendentes } from './hooks';
+import { MESES_A_FRENTE, useCiclo, useCicloAtual, useHoje, useMes, usePendentes } from './hooks';
 import { useFamilia, useSessao } from './sessao';
 import { textos } from './textos';
 
@@ -41,14 +44,14 @@ function SyncIndicator() {
 
 function MonthSwitcher() {
   const [mes, setMes] = useMes();
-  const hoje = useHoje();
-  const limite = somarMeses(mesDe(hoje), MESES_A_FRENTE);
+  const ciclo = useCiclo();
+  const limite = somarMeses(useCicloAtual().ref, MESES_A_FRENTE);
   return (
     <div className="month">
       <button type="button" aria-label="Mês anterior" onClick={() => setMes(somarMeses(mes, -1))}>
         ‹
       </button>
-      <button type="button" className="mlabel num" title="Voltar ao mês atual" onClick={() => setMes(null)}>
+      <button type="button" className="mlabel num" title={`Ciclo de ${periodoDoCiclo(ciclo)} · toque para voltar ao ciclo atual`} onClick={() => setMes(null)}>
         {rotuloMes(mes)}
       </button>
       <button
@@ -67,9 +70,9 @@ function MonthSwitcher() {
 function useSincronizacao() {
   const familia = useFamilia();
   const { recarregarFamilia } = useSessao();
-  const [mes] = useMes();
+  const ciclo = useCiclo();
   const hoje = useHoje();
-  const { de, ate } = intervaloDeCarga(mes, hoje);
+  const { de, ate } = intervaloDeCarga(ciclo, hoje);
   const intervalo = useRef({ de, ate });
   intervalo.current = { de, ate };
   const toast = useToast();
@@ -90,6 +93,7 @@ function useSincronizacao() {
     recarregarMes();
     void sincronizarBaldinhos(familia.familiaId).catch(() => {});
     void sincronizarMembros(familia.familiaId).catch(() => {});
+    void sincronizarCiclos(familia.familiaId).catch(() => {});
   }, [familia.familiaId, recarregarMes]);
 
   useEffect(() => {
@@ -127,6 +131,7 @@ function SheetHost() {
   if (folha.tipo === 'lancamento') return <LancamentoSheet lancamento={folha.lancamento} baldinhoId={folha.baldinhoId} />;
   if (folha.tipo === 'detalhe') return <DetalheBaldinhoSheet baldinhoId={folha.baldinhoId} />;
   if (folha.tipo === 'baldinho') return <BaldinhoSheet baldinho={folha.baldinho} />;
+  if (folha.tipo === 'ciclo') return <CicloSheet />;
   return <SugestoesSheet />;
 }
 

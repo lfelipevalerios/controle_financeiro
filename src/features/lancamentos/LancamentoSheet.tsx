@@ -1,12 +1,13 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { useFolhas } from '../../app/folhas';
-import { useApelidos, useBaldinhos, useHoje, useMes } from '../../app/hooks';
+import { useApelidos, useBaldinhos, useCiclo, useConfigCiclos, useHoje } from '../../app/hooks';
+import { cicloQueContem, CONFIG_CICLOS_PADRAO, tipoDoCiclo } from '../../domain/ciclo';
 import { useFamilia } from '../../app/sessao';
 import { textos } from '../../app/textos';
 import { Sheet } from '../../components/Sheet';
 import { useToast } from '../../components/Toast';
 import { excluirLancamento, salvarLancamento } from '../../data/repos/lancamentos';
-import { compararMes, ehDataValida, MESES_CURTOS, mesDe, tipoDoMes, ultimoDia } from '../../domain/datas';
+import { compararMes, ehDataValida, MESES_CURTOS } from '../../domain/datas';
 import { centavosParaTexto, formatarBRL, parseValor, VALOR_MAXIMO } from '../../domain/dinheiro';
 import { baldinhosAtivosNoMes } from '../../domain/regras';
 import type { Lancamento } from '../../domain/tipos';
@@ -35,18 +36,20 @@ export function LancamentoSheet({ lancamento, baldinhoId }: { lancamento?: Lanca
   const { fechar } = useFolhas();
   const toast = useToast();
   const hoje = useHoje();
-  const [mesExibido] = useMes();
+  const cicloExibido = useCiclo();
+  const mesExibido = cicloExibido.ref;
+  const config = useConfigCiclos() ?? CONFIG_CICLOS_PADRAO;
   const baldinhos = useBaldinhos(familia.familiaId) ?? [];
   const apelidos = useApelidos(familia.familiaId);
 
-  const dataPadrao = lancamento?.data ?? (tipoDoMes(mesExibido, hoje) === 'passado' ? ultimoDia(mesExibido) : hoje);
+  const dataPadrao = lancamento?.data ?? (tipoDoCiclo(cicloExibido, hoje) === 'passado' ? cicloExibido.fim : hoje);
   const [valor, setValor] = useState(lancamento ? centavosParaTexto(lancamento.valorCentavos) : '');
   const [data, setData] = useState(dataPadrao);
   const [descricao, setDescricao] = useState(lancamento?.descricao ?? '');
   const [erro, setErro] = useState('');
   const [confirmarExclusao, setConfirmarExclusao] = useState(false);
 
-  const mesDaData = ehDataValida(data) ? mesDe(data) : mesExibido;
+  const mesDaData = ehDataValida(data) ? cicloQueContem(data, config).ref : mesExibido;
   const opcoes = useMemo(() => {
     const ativos = baldinhosAtivosNoMes(baldinhos, mesDaData);
     const atual = lancamento && baldinhos.find((b) => b.id === lancamento.baldinhoId);
@@ -98,8 +101,8 @@ export function LancamentoSheet({ lancamento, baldinhoId }: { lancamento?: Lanca
     if (!navigator.onLine) toast(textos.toast.offlineFila);
     else if (lancamento) toast(textos.toast.atualizado(valorTxt));
     else {
-      const m = mesDe(data);
-      const fora = compararMes(m, mesExibido) !== 0 ? ` em ${MESES_CURTOS[m.mes - 1]}/${m.ano}` : '';
+      const m = cicloQueContem(data, config).ref;
+      const fora = compararMes(m, mesExibido) !== 0 ? ` no ciclo de ${MESES_CURTOS[m.mes - 1]}/${m.ano}` : '';
       toast(textos.toast.lancado(valorTxt) + fora);
     }
   }

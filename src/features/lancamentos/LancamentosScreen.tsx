@@ -11,7 +11,7 @@ import { ListaLancamentos } from './ListaLancamentos';
 export function LancamentosScreen() {
   const familia = useFamilia();
   const [mes] = useMes();
-  const { visao, baldinhos } = useVisaoMes(familia.familiaId, mes);
+  const { visao, baldinhos } = useVisaoMes(familia.familiaId);
   const [filtro, setFiltro] = useState<string | null>(null);
 
   if (!visao || !baldinhos) return <Esqueleto />;

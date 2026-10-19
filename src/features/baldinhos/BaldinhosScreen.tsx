@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useFolhas } from '../../app/folhas';
-import { useBaldinhos, useMes, useOnline } from '../../app/hooks';
+import { useBaldinhos, useCiclo, useMes, useOnline } from '../../app/hooks';
+import { periodoDoCiclo } from '../../domain/ciclo';
 import { useFamilia } from '../../app/sessao';
 import { textos } from '../../app/textos';
 import { useToast } from '../../components/Toast';
@@ -8,7 +9,7 @@ import { BucketIcon, EmptyState } from '../../components/ui';
 import { reordenarBaldinhos } from '../../data/repos/baldinhos';
 import { nomeMes } from '../../domain/datas';
 import { formatarBRL } from '../../domain/dinheiro';
-import { arquivadoEm, ordenarBaldinhos, planejadoMes, regraEfetiva, textoApoio, textoRegra } from '../../domain/regras';
+import { arquivadoEm, ordenarBaldinhos, planejado, regraEfetiva, textoApoio, textoRegra } from '../../domain/regras';
 import type { Baldinho } from '../../domain/tipos';
 import { Esqueleto } from '../mes/MesScreen';
 
@@ -16,6 +17,7 @@ import { Esqueleto } from '../mes/MesScreen';
 export function BaldinhosScreen() {
   const familia = useFamilia();
   const [mes] = useMes();
+  const ciclo = useCiclo();
   const todos = useBaldinhos(familia.familiaId);
   const { abrir } = useFolhas();
   const online = useOnline();
@@ -27,7 +29,7 @@ export function BaldinhosScreen() {
 
   const ativos = ordenarBaldinhos(todos.filter((b) => !arquivadoEm(b, mes)));
   const arquivados = ordenarBaldinhos(todos.filter((b) => arquivadoEm(b, mes)));
-  const totalPlanejado = ativos.reduce((s, b) => s + planejadoMes(regraEfetiva(b, mes), mes), 0);
+  const totalPlanejado = ativos.reduce((s, b) => s + planejado(regraEfetiva(b, mes), ciclo), 0);
   const lista: Baldinho[] = ordemEditada
     ? ordemEditada.map((id) => ativos.find((b) => b.id === id)).filter((b): b is Baldinho => !!b)
     : ativos;
@@ -62,12 +64,12 @@ export function BaldinhosScreen() {
         <div style={{ minWidth: 0 }}>
           <div className="item-top">
             <span className="item-name">{b.nome}</span>
-            <span className="item-val num">{formatarBRL(planejadoMes(regra, mes))}</span>
+            <span className="item-val num">{formatarBRL(planejado(regra, ciclo))}</span>
           </div>
           <div className="item-meta">
             <span>
               {textoRegra(regra)}
-              {regra && ` · ${textoApoio(regra, mes)}`}
+              {regra && ` · ${textoApoio(regra, ciclo)}`}
             </span>
           </div>
         </div>
@@ -99,7 +101,7 @@ export function BaldinhosScreen() {
     <>
       <section className="card">
         <p className="sub" style={{ margin: 0 }}>
-          Orçamento total de {nomeMes(mes)}
+          Orçamento total de {nomeMes(mes)}{!ciclo.calendario && ` · ${periodoDoCiclo(ciclo)}`}
         </p>
         <div className="big num">{formatarBRL(totalPlanejado)}</div>
       </section>
